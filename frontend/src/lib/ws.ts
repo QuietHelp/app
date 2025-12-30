@@ -1,51 +1,43 @@
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import { Client, type IFrame } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
-let client: Client | null = null;
+let stompClient: Client | null = null;
+const WS_URL = "http://localhost:8080/ws";
 
 export function getStompClient(): Client {
-  if (client && client.connected) {
-    return client;
-  }
+  if (stompClient) return stompClient;
 
-  const socket = new SockJS('http://localhost:8080/ws');
-  client = new Client({
-    webSocketFactory: () => socket as any,
+  stompClient = new Client({
+    webSocketFactory: () => (new SockJS(WS_URL) as unknown as any),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
-    onConnect: () => {
-      console.log('WebSocket connected');
-    },
-    onDisconnect: () => {
-      console.log('WebSocket disconnected');
-    },
-    onStompError: (frame) => {
-      console.error('STOMP error:', frame);
+    onConnect: () => console.log("WebSocket connected"),
+    onDisconnect: () => console.log("WebSocket disconnected"),
+    onStompError: (frame: IFrame) => {
+      console.error("STOMP error:", frame.headers["message"], frame.body);
     },
   });
 
-  client.activate();
-  return client;
+  stompClient.activate();
+  return stompClient;
 }
 
 export function waitForConnection(client: Client): Promise<void> {
   return new Promise((resolve) => {
-    if (client.connected) {
+    if (client.connected) return resolve();
+
+    const prevOnConnect = client.onConnect;
+    client.onConnect = (frame: IFrame) => {
+      if (prevOnConnect) prevOnConnect(frame);
       resolve();
-      return;
-    }
-    const originalOnConnect = client.onConnect;
-    client.onConnect = (frame) => {
-      if (originalOnConnect) originalOnConnect(frame);
-      resolve();
+      client.onConnect = prevOnConnect ?? (() => {});
     };
   });
 }
 
-export function disconnectStompClient() {
-  if (client) {
-    client.deactivate();
-    client = null;
-  }
+export async function disconnectStompClient(): Promise<void> {
+  if (!stompClient) return;
+  await stompClient.deactivate();
+  stompClient = null;
 }
