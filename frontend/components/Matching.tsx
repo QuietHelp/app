@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef } from "react";
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { getStompClient, waitForConnection } from "../lib/ws";
@@ -68,3 +70,4 @@ export default function Matching({ sessionId, mood, onMatchFound }: MatchingProp
     </div>
   );
 }
+

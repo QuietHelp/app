@@ -1,3 +1,5 @@
+'use client';
+
 import { Client, type IFrame } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
@@ -41,3 +43,4 @@ export async function disconnectStompClient(): Promise<void> {
   await stompClient.deactivate();
   stompClient = null;
 }
+

@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef, useState } from "react";
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { getStompClient, waitForConnection } from "../lib/ws";
@@ -122,3 +124,4 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
     </div>
   );
 }
+

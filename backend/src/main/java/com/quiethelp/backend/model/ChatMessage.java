@@ -10,6 +10,11 @@ public class ChatMessage {
     private String message;
     private Instant timestamp;
 
+    // Default constructor required for Spring WebSocket message deserialization
+    public ChatMessage() {
+        this.timestamp = Instant.now();
+    }
+
     @JsonCreator
     public ChatMessage(@JsonProperty("roomId") String roomId,
                       @JsonProperty("senderSessionId") String senderSessionId,

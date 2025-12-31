@@ -7,6 +7,10 @@ public class MatchRequest {
     private String sessionId;
     private MoodType mood;
 
+    // Default constructor required for Spring WebSocket message deserialization
+    public MatchRequest() {
+    }
+
     @JsonCreator
     public MatchRequest(@JsonProperty("sessionId") String sessionId, 
                        @JsonProperty("mood") MoodType mood) {

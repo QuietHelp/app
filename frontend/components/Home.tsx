@@ -1,3 +1,5 @@
+'use client';
+
 interface HomeProps {
   onStart: () => void;
 }
