@@ -5,6 +5,7 @@ import com.quiethelp.backend.repository.MetricEventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -17,8 +18,10 @@ public class MetricsService {
         MetricEvent event = new MetricEvent();
         event.setEventType(eventType);
         if (metadata != null) {
-            metadata.put("sessionId", sessionId);
-            event.setMetadata(metadata);
+            // Create a mutable copy to avoid UnsupportedOperationException
+            Map<String, Object> mutableMetadata = new HashMap<>(metadata);
+            mutableMetadata.put("sessionId", sessionId);
+            event.setMetadata(mutableMetadata);
         } else {
             event.setMetadata(Map.of("sessionId", sessionId));
         }

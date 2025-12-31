@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QuietHelp - Anonymous Peer Support",
+  title: "QuietHelp",
   description: "Anonymous peer support. No login required.",
 };
 

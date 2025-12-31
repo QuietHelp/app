@@ -28,7 +28,7 @@ public class MatchingService {
     private static final String SESSION_ROOM_PREFIX = "session:room:";
     private static final int TTL_MINUTES = 30;
 
-    public void joinMatchQueue(String sessionId, MoodType mood) {
+    public void joinMatchQueue(String sessionId, MoodType mood, Integer age, String country) {
         String queueKey = QUEUE_PREFIX + mood.name();
         
         // Check if there's someone waiting
@@ -67,14 +67,14 @@ public class MatchingService {
             messagingTemplate.convertAndSend("/topic/match/" + sessionId, match1);
             messagingTemplate.convertAndSend("/topic/match/" + peerSessionId, match2);
             
-            metricsService.recordEvent("MATCH_FOUND", sessionId, Map.of("roomId", roomId, "peerSessionId", peerSessionId));
+            metricsService.recordEvent("MATCH_FOUND", sessionId, Map.of("roomId", roomId, "peerSessionId", peerSessionId, "age", String.valueOf(age), "country", country));
             metricsService.recordEvent("MATCH_FOUND", peerSessionId, Map.of("roomId", roomId, "peerSessionId", sessionId));
         } else {
             // No match yet, add to queue
             redisTemplate.opsForList().leftPush(queueKey, sessionId);
             redisTemplate.expire(queueKey, TTL_MINUTES, TimeUnit.MINUTES);
             
-            metricsService.recordEvent("MATCH_JOINED", sessionId, Map.of("mood", mood.name()));
+            metricsService.recordEvent("MATCH_JOINED", sessionId, Map.of("mood", mood.name(), "age", String.valueOf(age), "country", country));
         }
     }
 }

@@ -5,6 +5,7 @@ public enum MoodType {
     LONELY,
     BURNOUT,
     PANIC,
+    NOT_SURE,
     OTHER
 }
 

@@ -24,9 +24,18 @@ export type ChatRoomProps = {
 export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const subscriptionRef = useRef<StompSubscription | null>(null);
   const didSubscribeRef = useRef(false);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     let isMounted = true;
@@ -93,31 +102,51 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Chat Room</h2>
-
-      <div style={{ border: "1px solid #ddd", padding: 12, height: 300, overflowY: "auto" }}>
-        {messages.map((m, idx) => (
-          <div key={idx} style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>
-              {m.senderSessionId === sessionId ? "You" : "Peer"} • {new Date(m.timestamp).toLocaleTimeString()}
-            </div>
-            <div>{m.message}</div>
-          </div>
-        ))}
+    <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 mb-4">
+        <h2 className="h4 text-white mb-2">Chat Room</h2>
+        <p className="text-sm text-white/80">You're connected with someone who understands</p>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+      <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 overflow-y-auto mb-4 min-h-0">
+        {messages.length === 0 ? (
+          <div className="text-center text-white/60 mt-8">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {messages.map((m, idx) => (
+              <div 
+                key={idx} 
+                className={`flex ${m.senderSessionId === sessionId ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`max-w-[80%] sm:max-w-[70%] ${m.senderSessionId === sessionId ? 'bg-blue-600 text-white' : 'bg-white/20 text-white'} rounded-lg p-3 sm:p-4`}>
+                  <div className="text-xs opacity-70 mb-1">
+                    {m.senderSessionId === sessionId ? "You" : "Peer"} • {new Date(m.timestamp).toLocaleTimeString()}
+                  </div>
+                  <div className="text-sm sm:text-base break-words">{m.message}</div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-3">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          style={{ flex: 1, padding: 10 }}
+          className="flex-1 p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20"
           onKeyDown={(e) => {
             if (e.key === "Enter") sendMessage();
           }}
         />
-        <button onClick={sendMessage} style={{ padding: "10px 14px" }}>
+        <button 
+          onClick={sendMessage}
+          className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-blue-600 rounded-lg font-medium hover:bg-white/90 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+        >
           Send
         </button>
       </div>

@@ -46,12 +46,18 @@ export default function ChatRoomPage() {
   }, [params.roomId, router]);
 
   if (!sessionId || !matchData) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-bg">
+        <div className="text-white text-lg">Loading...</div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <ChatRoom sessionId={sessionId} matchData={matchData} />
+    <div className="min-h-screen gradient-bg">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <ChatRoom sessionId={sessionId} matchData={matchData} />
+      </div>
     </div>
   );
 }

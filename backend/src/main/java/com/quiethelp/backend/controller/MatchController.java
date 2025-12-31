@@ -15,7 +15,7 @@ public class MatchController {
 
     @MessageMapping("/match.join")
     public void joinMatch(@Payload MatchRequest request) {
-        matchingService.joinMatchQueue(request.getSessionId(), request.getMood());
+        matchingService.joinMatchQueue(request.getSessionId(), request.getMood(), request.getAge(), request.getCountry());
     }
 }
 
