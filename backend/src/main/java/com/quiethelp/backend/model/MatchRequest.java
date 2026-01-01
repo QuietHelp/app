@@ -1,8 +1,5 @@
 package com.quiethelp.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class MatchRequest {
     private String sessionId;
     private MoodType mood;
@@ -11,17 +8,6 @@ public class MatchRequest {
 
     // Default constructor required for Spring WebSocket message deserialization
     public MatchRequest() {
-    }
-
-    @JsonCreator
-    public MatchRequest(@JsonProperty("sessionId") String sessionId, 
-                       @JsonProperty("mood") MoodType mood,
-                       @JsonProperty("age") Integer age,
-                       @JsonProperty("country") String country) {
-        this.sessionId = sessionId;
-        this.mood = mood;
-        this.age = age;
-        this.country = country;
     }
 
     // Getters and setters

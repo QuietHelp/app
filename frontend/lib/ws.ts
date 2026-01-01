@@ -10,7 +10,7 @@ export function getStompClient(): Client {
   if (stompClient) return stompClient;
 
   stompClient = new Client({
-    webSocketFactory: () => (new SockJS(WS_URL) as unknown as any),
+    webSocketFactory: () => (new SockJS(WS_URL) as unknown as WebSocket),
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,

@@ -7,15 +7,43 @@ import ChatRoom from '../../../components/ChatRoom';
 export default function ChatRoomPage() {
   const params = useParams();
   const router = useRouter();
+  const roomId = params.roomId as string;
+  
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<{ roomId: string; peerSessionId: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedSessionId = localStorage.getItem('sessionId');
-    const savedMatchData = localStorage.getItem('matchData');
-    const roomId = params.roomId as string;
+    // Mark as mounted to indicate we're on the client
+    setMounted(true);
+    
+    // Only access sessionStorage on the client side (sessionStorage is per-tab, localStorage is shared)
+    const storedSessionId = sessionStorage.getItem('sessionId');
+    const savedMatchData = sessionStorage.getItem('matchData');
+    
+    setSessionId(storedSessionId);
+    
+    if (savedMatchData) {
+      try {
+        const parsed = JSON.parse(savedMatchData);
+        // Verify the roomId matches
+        if (parsed.roomId === roomId) {
+          setMatchData(parsed);
+        } else {
+          setMatchData(null);
+        }
+      } catch {
+        setMatchData(null);
+      }
+    } else {
+      setMatchData(null);
+    }
+  }, [roomId]);
 
-    if (!savedSessionId) {
+  useEffect(() => {
+    if (!mounted) return;
+    
+    if (!sessionId) {
       router.push('/');
       return;
     }
@@ -25,27 +53,14 @@ export default function ChatRoomPage() {
       return;
     }
 
-    if (!savedMatchData) {
+    if (!matchData) {
       router.push('/matching');
       return;
     }
+  }, [sessionId, roomId, matchData, router, mounted]);
 
-    try {
-      const matchData = JSON.parse(savedMatchData);
-      // Verify the roomId matches
-      if (matchData.roomId !== roomId) {
-        router.push('/matching');
-        return;
-      }
-      setSessionId(savedSessionId);
-      setMatchData(matchData);
-    } catch (error) {
-      console.error('Failed to parse match data:', error);
-      router.push('/matching');
-    }
-  }, [params.roomId, router]);
-
-  if (!sessionId || !matchData) {
+  // Always show loading until mounted and data is loaded
+  if (!mounted || !sessionId || !matchData) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-bg">
         <div className="text-white text-lg">Loading...</div>
@@ -61,4 +76,3 @@ export default function ChatRoomPage() {
     </div>
   );
 }
-

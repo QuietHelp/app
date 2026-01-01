@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, GlobeIcon, MessageSquare } from "lucide-react"
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -33,7 +33,8 @@ export default function Home() {
         method: 'POST',
       });
       const data = await response.json();
-      localStorage.setItem('sessionId', data.sessionId);
+      // Use sessionStorage instead of localStorage so each tab has its own sessionId
+      sessionStorage.setItem('sessionId', data.sessionId);
       router.push('/mood');
     } catch (error) {
       console.error('Failed to create session:', error);
@@ -41,7 +42,8 @@ export default function Home() {
   };
 
   return (
-    <ScrollArea className="h-full">
+    <div className="min-h-screen gradient-bg">
+     <ScrollArea className="h-full">
         <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 gradient-bg">
           <main className="grow flex items-center justify-center">
             <motion.div
@@ -62,15 +64,24 @@ export default function Home() {
               >
                 Help us match you with the right friend.
               </motion.p>
-              <motion.div variants={itemVariants}>
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button onClick={handleStart} size="lg" className="rounded-full hover-lift">
                   Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  onClick={() => router.push('/chat-broadcast')} 
+                  size="lg" 
+                  className="rounded-full hover-lift bg-white/20 hover:bg-white/30 text-white border border-white/30"
+                >
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Try Global Chat <GlobeIcon className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
             </motion.div>
           </main>
         </div>
       </ScrollArea>
+      </div>
   )
 }

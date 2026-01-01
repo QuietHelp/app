@@ -18,6 +18,12 @@ interface MatchingProps {
 export default function Matching({ sessionId, mood, age, country, onMatchFound }: MatchingProps) {
   const subscriptionRef = useRef<StompSubscription | null>(null);
   const startedRef = useRef(false);
+  const onMatchFoundRef = useRef(onMatchFound);
+
+  // Keep callback ref updated
+  useEffect(() => {
+    onMatchFoundRef.current = onMatchFound;
+  }, [onMatchFound]);
 
   useEffect(() => {
     let isMounted = true;
@@ -36,8 +42,12 @@ export default function Matching({ sessionId, mood, age, country, onMatchFound }
         subscriptionRef.current = client.subscribe(
           `/topic/match/${sessionId}`,
           (message: IMessage) => {
-            const data = JSON.parse(message.body) as MatchFound;
-            onMatchFound(data);
+            try {
+              const data = JSON.parse(message.body) as MatchFound;
+              onMatchFoundRef.current(data);
+            } catch (error) {
+              console.error("Failed to parse match message:", error);
+            }
           }
         );
 
@@ -62,7 +72,7 @@ export default function Matching({ sessionId, mood, age, country, onMatchFound }
         subscriptionRef.current = null;
       }
     };
-  }, [sessionId, mood, age, country, onMatchFound]);
+  }, [sessionId, mood, age, country]);
 
   return (
     <motion.div 
@@ -84,7 +94,7 @@ export default function Matching({ sessionId, mood, age, country, onMatchFound }
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
       >
-        We're finding someone who understands.
+        We&apos;re finding someone who understands.
       </motion.p>
       <motion.div
         className="mt-8 flex justify-center"

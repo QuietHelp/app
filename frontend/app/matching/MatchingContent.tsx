@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Matching from '../../components/Matching';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,38 +12,49 @@ export default function MatchingContent() {
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [formData, setFormData] = useState<{ mood: string; age: number; country: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Load data from localStorage only on the client side
+  useEffect(() => {
+    setMounted(true);
+    
+    const storedSessionId = sessionStorage.getItem('sessionId');
+    setSessionId(storedSessionId);
+    
+    const savedFormData = sessionStorage.getItem('matchingData');
+    if (savedFormData) {
+      try {
+        setFormData(JSON.parse(savedFormData));
+      } catch {
+        setFormData(null);
+      }
+    } else {
+      setFormData(null);
+    }
+  }, []);
 
   useEffect(() => {
-    const savedSessionId = localStorage.getItem('sessionId');
-    const savedFormData = localStorage.getItem('matchingData');
+    if (!mounted) return;
     
-    if (!savedSessionId) {
+    if (!sessionId) {
       router.push('/');
       return;
     }
     
-    if (!savedFormData) {
+    if (!formData) {
       router.push('/mood');
       return;
     }
+  }, [sessionId, formData, router, mounted]);
 
-    try {
-      const data = JSON.parse(savedFormData);
-      setSessionId(savedSessionId);
-      setFormData(data);
-    } catch (error) {
-      console.error('Failed to parse form data:', error);
-      router.push('/mood');
-    }
+  const handleMatchFound = useCallback((data: MatchFound) => {
+    // Store match data in localStorage for the chat page
+    sessionStorage.setItem('matchData', JSON.stringify(data));
+    router.push(`/chat/${data.roomId}`);
   }, [router]);
 
-  const handleMatchFound = (data: MatchFound) => {
-    // Store match data in localStorage for the chat page
-    localStorage.setItem('matchData', JSON.stringify(data));
-    router.push(`/chat/${data.roomId}`);
-  };
-
-  if (!sessionId || !formData) {
+  // Show loading until mounted and data is loaded
+  if (!mounted || !sessionId || !formData) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-bg">
         <div className="text-white text-lg">Loading...</div>
