@@ -39,7 +39,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
       // Generate a unique username using timestamp
       const timestamp = Date.now().toString().slice(-6);
       const randomNum = Math.floor(Math.random() * 1000);
-      username = `Guest${timestamp}${randomNum}`;
+      username = `Friend${timestamp}${randomNum}`;
       localStorage.setItem('chat_username_broadcast', username);
     }
     usernameRef.current = username;
