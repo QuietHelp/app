@@ -6,10 +6,11 @@ import { ArrowRight, GlobeIcon, MessageSquare } from "lucide-react"
 
 export default function Home() {
   const router = useRouter();
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
   const handleStart = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/session`, {
+      const response = await fetch(`${API_BASE}/api/session`, {
         method: 'GET',
       });
       const data = await response.json();
@@ -23,7 +24,7 @@ export default function Home() {
 
   const handleGlobalChat = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/global-chat/session`, {
+      const response = await fetch(`${API_BASE}/api/global-chat/session`, {
         method: 'GET',
       });
       const data = await response.json();
@@ -45,8 +46,7 @@ export default function Home() {
                 QuietHelp
               </h1>
               <p className="text-lg sm:text-xl text-white mb-8 sm:mb-12">
-                A quiet, anonymous space.
-                No logins, no pressure, just peer support from one human to another.
+                Anonymous peer support. No logins. No pressure.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button onClick={handleStart} size="lg" className="rounded-full hover-lift">
