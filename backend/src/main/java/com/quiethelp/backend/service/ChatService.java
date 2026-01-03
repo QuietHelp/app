@@ -67,6 +67,10 @@ public class ChatService {
                     messageDTO.getMessage().trim(),
                     Instant.now().toEpochMilli()
                 );
+                // Set senderSessionId if provided for broadcast chat
+                if (senderSessionId != null && !senderSessionId.trim().isEmpty()) {
+                    response.setSenderSessionId(senderSessionId);
+                }
             }
             
             // Store in Redis (per room if room-based, globally if broadcast)
