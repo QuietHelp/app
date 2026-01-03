@@ -29,11 +29,10 @@ public class ChatHistoryController {
     @GetMapping("/history")
     public ResponseEntity<Map<String, Object>> getChatHistory() {
         try {
-            List<ChatMessageResponse> history = chatService.getChatHistory();
-            
+            // Chat history disabled: always return empty array.
             return ResponseEntity.ok(Map.of(
-                "messages", history,
-                "count", history.size()
+                "messages", List.of(),
+                "count", 0
             ));
             
         } catch (Exception e) {

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import com.quiethelp.backend.model.ChatMessageResponse;
 
 @Service
 public class MatchingService {
@@ -76,6 +77,50 @@ public class MatchingService {
             
             metricsService.recordEvent("MATCH_JOINED", sessionId, Map.of("mood", mood.name(), "age", String.valueOf(age), "country", country));
         }
+    }
+
+    // End session for a given sessionId: remove room mappings, delete room, notify both users
+    public void endSession(String sessionId) {
+        String sessionRoomKey = SESSION_ROOM_PREFIX + sessionId;
+        String roomId = redisTemplate.opsForValue().get(sessionRoomKey);
+        if (roomId == null) return;
+
+        String roomKey = ROOM_PREFIX + roomId;
+        String participants = redisTemplate.opsForValue().get(roomKey);
+
+        // Notify room that session ended
+        try {
+            ChatMessageResponse sysMsg = new ChatMessageResponse("system", "Session ended.", java.time.Instant.now().toEpochMilli(), roomId, null);
+            messagingTemplate.convertAndSend("/topic/chat/" + roomId, sysMsg);
+        } catch (Exception e) {
+            // ignore
+        }
+
+        // Delete Redis keys for room and session mappings
+        try {
+            redisTemplate.delete(roomKey);
+            redisTemplate.delete(sessionRoomKey);
+            if (participants != null && participants.contains(":")) {
+                String[] parts = participants.split(":", 2);
+                String a = parts[0];
+                String b = parts[1];
+                redisTemplate.delete(SESSION_ROOM_PREFIX + a);
+                redisTemplate.delete(SESSION_ROOM_PREFIX + b);
+            }
+
+            // Also delete any stored room messages
+            redisTemplate.delete("chat:room:" + roomId);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    // Change friend: end current session for this user, then re-join queue with provided params
+    public void changeFriend(String sessionId, MoodType mood, Integer age, String country) {
+        endSession(sessionId);
+        // Re-enqueue user for matching using provided params
+        if (mood == null) mood = MoodType.NOT_SURE;
+        joinMatchQueue(sessionId, mood, age, country);
     }
 }
 

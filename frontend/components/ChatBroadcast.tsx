@@ -14,7 +14,8 @@ interface ChatMessage {
   senderSessionId?: string;
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const WS_URL = `${API_BASE.replace(/\/$/, '')}/ws`;
 
 export type ChatBroadcastProps = {
   sessionId: string;
@@ -46,25 +47,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
   }, []);
 
  
-  // Load chat history on mount
-  const loadChatHistory = useCallback(async () => {
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${backendUrl}/api/chat/history`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load chat history');
-      }
-      
-      const data = await response.json();
-      if (data.messages && Array.isArray(data.messages)) {
-        setMessages(data.messages);
-      }
-    } catch (err) {
-      console.error('Error loading chat history:', err);
-      // Don't show error to user - just continue without history
-    }
-  }, []);
+  // Chat history disabled: do not load past messages on mount
 
   // Connect to WebSocket
   const connect = useCallback(() => {
@@ -132,9 +115,8 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
-  // Initialize connection and load history
+  // Initialize connection
   useEffect(() => {
-    loadChatHistory();
     connect();
 
     return () => {
@@ -149,7 +131,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
         clientRef.current.deactivate();
       }
     };
-  }, [connect, loadChatHistory]);
+  }, [connect]);
 
   // Handle manual reconnection
   const handleReconnect = useCallback(() => {

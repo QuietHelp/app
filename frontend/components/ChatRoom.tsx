@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from 'next/navigation';
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { getStompClient, waitForConnection } from "@/lib/ws";
 import { formatMessageTime, formatFullTimestamp, shouldShowDateSeparator, formatDateSeparator } from "../lib/chatUtils";
@@ -28,6 +29,10 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   const [input, setInput] = useState("");
   const [myUsername, setMyUsername] = useState<string>("");
   const [peerUsername, setPeerUsername] = useState<string>("");
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const [finding, setFinding] = useState(false);
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  const router = useRouter();
  
 
   const subscriptionRef = useRef<StompSubscription | null>(null);
@@ -41,6 +46,20 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
       
       // Validate message structure
       if (data && typeof data.message === 'string') {
+          // If this is a system 'Session ended.' message, clear previous messages and stop
+          if (data.username === 'system' && data.message === 'Session ended.') {
+            setMessages([{ ...data, timestamp: Date.now() }]);
+            // unsubscribe
+            if (subscriptionRef.current) {
+              subscriptionRef.current.unsubscribe();
+              subscriptionRef.current = null;
+            }
+            setSessionEnded(true);
+            sessionStorage.removeItem('matchData');
+            // navigate back to home
+            router.push('/');
+            return;
+          }
         // Track peer's username from their messages
         if (data.senderSessionId && data.senderSessionId !== sessionIdRef.current) {
           if (data.username) {
@@ -123,12 +142,15 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
         subscriptionRef.current.unsubscribe();
         subscriptionRef.current = null;
       }
+      setSessionEnded(false);
     };
   }, [matchData.roomId]);
 
   const sendMessage = async () => {
     const messageText = input.trim();
     if (!messageText) return;
+
+    if (sessionEnded || finding) return;
 
     try {
       // Moderate message before sending
@@ -169,6 +191,54 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
     }
   };
 
+  const endSession = async () => {
+    try {
+      await fetch(`${API_BASE}/api/session/${sessionId}/end`, { method: 'POST' });
+    } catch (e) {
+      // ignore errors
+    }
+
+    // Clear UI and stop subscribing
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+      subscriptionRef.current = null;
+    }
+    setMessages([]);
+    setSessionEnded(true);
+    // show neutral system message locally then navigate to home
+    sessionStorage.removeItem('matchData');
+    router.push('/');
+  };
+
+  const changeFriend = async () => {
+    // retrieve matchingData (mood/age/country) to provide to backend
+    const matchingDataRaw = sessionStorage.getItem('matchingData');
+    let body = {} as any;
+    if (matchingDataRaw) {
+      try { body = JSON.parse(matchingDataRaw); } catch { body = {}; }
+    }
+
+    try {
+      await fetch(`${API_BASE}/api/session/${sessionId}/change-friend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch (e) {
+      // ignore
+    }
+
+    // Clear UI and show finding state
+    if (subscriptionRef.current) {
+      subscriptionRef.current.unsubscribe();
+      subscriptionRef.current = null;
+    }
+    setMessages([]);
+    setFinding(true);
+    // navigate to matching which will enqueue and find a new friend
+    router.push('/matching');
+  };
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 mb-4">
@@ -183,6 +253,10 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
                   : "Connected"}
               </p>
             </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={changeFriend} className="px-3 py-2 bg-white/10 text-white rounded-md hover:bg-white/20">Change Friend</button>
+            <button onClick={endSession} className="px-3 py-2 bg-red-600 text-white rounded-md hover:opacity-90">End Session</button>
           </div>
         </div>
       </div>

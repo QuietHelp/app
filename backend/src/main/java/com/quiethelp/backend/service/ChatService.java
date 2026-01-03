@@ -95,29 +95,9 @@ public class ChatService {
     // Stores message in Redis as a capped list (last 100 messages)
     // If roomId is provided, stores per room; otherwise stores globally
     private void storeMessage(ChatMessageResponse message, String roomId) {
-        try {
-            String messageJson = objectMapper.writeValueAsString(message);
-            
-            // Determine Redis key (per room or global)
-            String redisKey = (roomId != null && !roomId.trim().isEmpty())
-                ? REDIS_ROOM_MESSAGE_KEY_PREFIX + roomId
-                : REDIS_MESSAGE_KEY;
-            
-            // Add to list
-            redisTemplate.opsForList().rightPush(redisKey, messageJson);
-            
-            // Trim list to keep only last MAX_MESSAGES
-            redisTemplate.opsForList().trim(redisKey, -MAX_MESSAGES, -1);
-            
-            // Set expiration (24 hours) to prevent unlimited growth
-            redisTemplate.expire(redisKey, java.time.Duration.ofHours(24));
-            
-        } catch (JsonProcessingException e) {
-            logger.error("Error serializing message to JSON: {}", e.getMessage(), e);
-        } catch (Exception e) {
-            logger.error("Error storing message in Redis: {}", e.getMessage(), e);
-            // Don't throw - allow message to be broadcast even if Redis fails
-        }
+        // Disabled persistence: do not store messages for later retrieval.
+        // This intentionally no-ops to ensure no history is kept.
+        return;
     }
     
     // Broadcasts message via WebSocket
@@ -140,32 +120,8 @@ public class ChatService {
     // Retrieves chat history from Redis
     // Returns list of recent messages (up to MAX_MESSAGES)
     public List<ChatMessageResponse> getChatHistory() {
-        List<ChatMessageResponse> history = new ArrayList<>();
-        
-        try {
-            // Get all messages from Redis list
-            List<String> messageJsons = redisTemplate.opsForList().range(REDIS_MESSAGE_KEY, 0, -1);
-            
-            if (messageJsons != null) {
-                for (String messageJson : messageJsons) {
-                    try {
-                        ChatMessageResponse message = objectMapper.readValue(messageJson, ChatMessageResponse.class);
-                        history.add(message);
-                    } catch (JsonProcessingException e) {
-                        logger.warn("Error deserializing message from Redis: {}", e.getMessage());
-                        // Skip malformed messages
-                    }
-                }
-            }
-            
-            logger.debug("Retrieved {} messages from chat history", history.size());
-            
-        } catch (Exception e) {
-            logger.error("Error retrieving chat history from Redis: {}", e.getMessage(), e);
-            // Return empty list on error rather than failing
-        }
-        
-        return history;
+        // History disabled: do not return previously stored messages.
+        return new ArrayList<>();
     }
     
     // Clears chat history (useful for testing or maintenance)

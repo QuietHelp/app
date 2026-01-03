@@ -4,7 +4,8 @@ import { Client, type IFrame } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
 let stompClient: Client | null = null;
-const WS_URL = `${process.env.NEXT_PUBLIC_API_URL}/ws`;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const WS_URL = `${API_BASE.replace(/\/$/, '')}/ws`;
 
 export function getStompClient(): Client {
   if (stompClient) return stompClient;
