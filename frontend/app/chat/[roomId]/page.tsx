@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import ChatRoom from '../../../components/ChatRoom';
+import ChatRoom from '@/components/ChatRoom';
 
 export default function ChatRoomPage() {
   const params = useParams();

@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
-import { getStompClient, waitForConnection } from "../lib/ws";
+import { getStompClient, waitForConnection } from "@/lib/ws";
 import { formatMessageTime, formatFullTimestamp, shouldShowDateSeparator, formatDateSeparator } from "../lib/chatUtils";
-import { motion } from "framer-motion";
 
 export type ChatMessage = {
   roomId?: string;
@@ -29,20 +28,62 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   const [input, setInput] = useState("");
   const [myUsername, setMyUsername] = useState<string>("");
   const [peerUsername, setPeerUsername] = useState<string>("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+ 
 
   const subscriptionRef = useRef<StompSubscription | null>(null);
   const didSubscribeRef = useRef(false);
   const sessionIdRef = useRef<string>(sessionId);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+   // Handler function for processing messages
+   const handleMessage = (messageBody: string) => {
+    try {
+      const data = JSON.parse(messageBody) as ChatMessage;
+      
+      // Validate message structure
+      if (data && typeof data.message === 'string') {
+        // Track peer's username from their messages
+        if (data.senderSessionId && data.senderSessionId !== sessionIdRef.current) {
+          if (data.username) {
+            setPeerUsername(data.username);
+          }
+        }
+        
+        // Ensure roomId and senderSessionId are set for room-based chat
+        const roomMessage: ChatMessage = {
+          ...data,
+          roomId: matchData.roomId,
+          senderSessionId: data.senderSessionId || sessionIdRef.current,
+          timestamp: data.timestamp || Date.now(),
+        };
+        
+        setMessages((prev) => [...prev, roomMessage]);
+      }
+    } catch (error) {
+      console.error("Failed to parse chat message:", error);
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const setupConnection = async (isMounted: boolean) => {
+    try {
+      const client = getStompClient();
+      await waitForConnection(client);
 
+      if (!isMounted) return;
+
+      // React StrictMode can run effects twice in dev; guard to avoid double subscribe
+      if (didSubscribeRef.current) return;
+      didSubscribeRef.current = true;
+
+      // Subscribe to room-specific topic
+      subscriptionRef.current = client.subscribe(
+        `/topic/chat/${matchData.roomId}`,
+        (message: IMessage) => handleMessage(message.body)
+      );
+    } catch (error) {
+      console.error("Failed to setup chat connection:", error);
+    }
+  };
+  
   // Generate or retrieve username for current user
   useEffect(() => {
     const storedUsername = sessionStorage.getItem(`chat_username_${sessionId}`);
@@ -59,7 +100,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
       // Combine all parts using XOR to distribute values better
       const combined = (part1 ^ part2 ^ part3) % 99999999;
       const usernameSuffix = String(combined + 1).padStart(8, '0'); // +1 to avoid 00000000
-      const username = `Guest${usernameSuffix}`;
+      const username = `Friend${usernameSuffix}`;
       sessionStorage.setItem(`chat_username_${sessionId}`, username);
       setMyUsername(username);
     }
@@ -72,58 +113,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
 
   useEffect(() => {
     let isMounted = true;
-
-    const setupConnection = async () => {
-      try {
-        const client = getStompClient();
-        await waitForConnection(client);
-
-        if (!isMounted) return;
-
-        // React StrictMode can run effects twice in dev; guard to avoid double subscribe
-        if (didSubscribeRef.current) return;
-        didSubscribeRef.current = true;
-
-        // Handler function for processing messages
-        const handleMessage = (messageBody: string) => {
-          try {
-            const data = JSON.parse(messageBody) as ChatMessage;
-            
-            // Validate message structure
-            if (data && typeof data.message === 'string') {
-              // Track peer's username from their messages
-              if (data.senderSessionId && data.senderSessionId !== sessionIdRef.current) {
-                if (data.username) {
-                  setPeerUsername(data.username);
-                }
-              }
-              
-              // Ensure roomId and senderSessionId are set for room-based chat
-              const roomMessage: ChatMessage = {
-                ...data,
-                roomId: matchData.roomId,
-                senderSessionId: data.senderSessionId || sessionIdRef.current,
-                timestamp: data.timestamp || Date.now(),
-              };
-              
-              setMessages((prev) => [...prev, roomMessage]);
-            }
-          } catch (error) {
-            console.error("Failed to parse chat message:", error);
-          }
-        };
-
-        // Subscribe to room-specific topic
-        subscriptionRef.current = client.subscribe(
-          `/topic/chat/${matchData.roomId}`,
-          (message: IMessage) => handleMessage(message.body)
-        );
-      } catch (error) {
-        console.error("Failed to setup chat connection:", error);
-      }
-    };
-
-    setupConnection();
+    setupConnection(isMounted);
 
     return () => {
       isMounted = false;
@@ -200,7 +190,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
       <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 overflow-y-auto mb-4 min-h-0">
         {messages.length === 0 ? (
           <div className="text-center text-white/60 mt-8">
-            <p>No messages yet. Start the conversation!</p>
+            <h3 className="h3 text-white mb-1">Start the conversation!</h3>
           </div>
         ) : (
           <div className="space-y-3">
@@ -218,11 +208,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
                       </span>
                     </div>
                   )}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
+                  <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
                   >
                     <div 
                       className={`max-w-[75%] sm:max-w-[65%] ${
@@ -232,9 +218,6 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
                       } px-4 py-2.5 shadow-sm`}
                       title={formatFullTimestamp(timestamp)}
                     >
-                      <div className={`text-xs font-medium mb-1 opacity-90 ${isMyMessage ? 'text-right' : 'text-left'}`}>
-                        {isMyMessage ? 'You' : (peerUsername || m.username || 'Guest')}
-                      </div>
                       <div className="text-sm sm:text-base wrap-break-word leading-relaxed">
                         {m.message}
                       </div>
@@ -242,11 +225,10 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
                         {formatMessageTime(timestamp)}
                       </div>
                     </div>
-                  </motion.div>
+                    </div>
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
@@ -278,13 +260,13 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
         <button 
           onClick={sendMessage}
           disabled={!input.trim()}
-          className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex items-center justify-center min-w-[64px]"
+          className="px-5 sm:px-6 py-3 sm:py-4 bg-white height-8 text-blue-600 rounded-2xl font-medium hover:bg-white/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex items-center justify-center min-w-[64px]"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
+            viewBox="0 0 20 20" 
             fill="currentColor" 
-            className="w-5 h-5"
+            className="w-5 h-9"
           >
             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
           </svg>

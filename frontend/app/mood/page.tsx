@@ -3,17 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MatchingForm from '../../components/MatchingForm';
-import { motion } from "framer-motion";
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
 
 export default function MoodPage() {
   const router = useRouter();
@@ -53,14 +42,9 @@ export default function MoodPage() {
   return (
     <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 gradient-bg">
       <main className="grow flex items-center justify-center">
-        <motion.div
-          className="max-w-2xl mx-auto w-full"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
+        <div className="max-w-2xl mx-auto w-full">
           <MatchingForm onSubmit={handleFormSubmit} />
-        </motion.div>
+          </div>
       </main>
     </div>
   );

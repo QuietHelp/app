@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { getStompClient, waitForConnection } from "../lib/ws";
-import { motion } from "framer-motion";
 
 type MatchFound = { roomId: string; peerSessionId: string };
 
@@ -75,43 +74,29 @@ export default function Matching({ sessionId, mood, age, country, onMatchFound }
   }, [sessionId, mood, age, country]);
 
   return (
-    <motion.div 
+    <div 
       className="text-center"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
     >
-      <motion.h2 
+      <h2 
         className="h1 text-white mb-4 sm:mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
       >
         Looking for someone...
-      </motion.h2>
-      <motion.p 
+      </h2>
+      <p 
         className="text-lg sm:text-xl text-white/90"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
       >
         We&apos;re finding someone who understands.
-      </motion.p>
-      <motion.div
+      </p>
+      <div 
         className="mt-8 flex justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
       >
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-white/30 border-t-white"></div>
-      </motion.div>
-      <motion.footer
+      </div>
+      <footer 
         className="mt-8 text-white/70 text-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
       >
-      </motion.footer>
-    </motion.div>
+      </footer>
+    </div>
   );
 }
 

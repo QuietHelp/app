@@ -3,8 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Matching from '../../components/Matching';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { motion } from "framer-motion";
 
 type MatchFound = { roomId: string; peerSessionId: string };
 
@@ -63,14 +61,10 @@ export default function MatchingContent() {
   }
 
   return (
-    <ScrollArea className="h-full">
+    <div className="h-full overflow-auto">
       <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 gradient-bg">
         <main className="grow flex items-center justify-center">
-          <motion.div
-            className="max-w-2xl mx-auto w-full"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+        
             <Matching
               sessionId={sessionId}
               mood={formData.mood}
@@ -78,10 +72,10 @@ export default function MatchingContent() {
               country={formData.country}
               onMatchFound={handleMatchFound}
             />
-          </motion.div>
-        </main>
+         </main>
       </div>
-    </ScrollArea>
+    </div>
+    
   );
 }
 

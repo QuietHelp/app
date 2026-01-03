@@ -4,25 +4,29 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import { getStompClient, waitForConnection } from "../lib/ws";
 import { formatMessageTime, formatFullTimestamp, shouldShowDateSeparator, formatDateSeparator } from "../lib/chatUtils";
-import { motion } from "framer-motion";
+import { GlobeIcon } from "lucide-react";
 
 interface ChatMessage {
   username?: string;
   message: string;
   timestamp: number | string;
+  senderSessionId?: string;
 }
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080/ws';
 
-export default function ChatBroadcast() {
+export type ChatBroadcastProps = {
+  sessionId: string;
+};
+
+export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<Client | null>(null);
+  const sessionIdRef = useRef<string>(sessionId);
   const subscriptionRef = useRef<StompSubscription | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const usernameRef = useRef<string>('');
@@ -41,11 +45,7 @@ export default function ChatBroadcast() {
     usernameRef.current = username;
   }, []);
 
-  // Scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
+ 
   // Load chat history on mount
   const loadChatHistory = useCallback(async () => {
     try {
@@ -127,6 +127,11 @@ export default function ChatBroadcast() {
     }
   }, []);
 
+  // Keep sessionId ref updated (similar to ChatRoom pattern)
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   // Initialize connection and load history
   useEffect(() => {
     loadChatHistory();
@@ -179,14 +184,16 @@ export default function ChatBroadcast() {
         return;
       }
 
-      // Send message without roomId for broadcast chat
+      // Send message with senderSessionId for broadcast chat (similar to ChatRoom pattern)
+      const chatMessage = {
+        message: messageText,
+        username: usernameRef.current,
+        senderSessionId: sessionId, // Use sessionId directly like ChatRoom does
+      };
+
       clientRef.current.publish({
         destination: '/app/chat.send',
-        body: JSON.stringify({
-          message: messageText,
-          username: usernameRef.current,
-          // No roomId or senderSessionId - this is broadcast chat
-        }),
+        body: JSON.stringify(chatMessage),
       });
 
       setInput('');
@@ -195,14 +202,14 @@ export default function ChatBroadcast() {
       console.error('Error sending message:', err);
       setError('Failed to send message. Please try again.');
     }
-  }, [input]);
+  }, [input, sessionId]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="h4 text-white mb-1">Global Chat</h2>
+            <h2 className="h4 text-white mb-1 flex items-center gap-2" >Global Chat <GlobeIcon className="w-4 h-4 text-blue-600"/></h2>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
               <p className="text-sm text-white/80">
@@ -229,11 +236,12 @@ export default function ChatBroadcast() {
       <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 overflow-y-auto mb-4 min-h-0">
         {messages.length === 0 ? (
           <div className="text-center text-white/60 mt-8">
-            <p>No messages yet. Start the conversation!</p>
+            <h3 className="h3 text-white mb-1">Start the conversation!</h3>
           </div>
         ) : (
           <div className="space-y-3">
             {messages.map((m, idx) => {
+              const isMyMessage = m.senderSessionId === sessionIdRef.current; // Same pattern as ChatRoom
               const timestamp = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
               const showDateSeparator = shouldShowDateSeparator(m, messages[idx - 1]);
               
@@ -246,14 +254,14 @@ export default function ChatBroadcast() {
                       </span>
                     </div>
                   )}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex justify-start mb-1"
+                  <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
                   >
                     <div 
-                      className="max-w-[75%] sm:max-w-[65%] bg-white/20 text-white rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm"
+                      className={`max-w-[75%] sm:max-w-[65%] ${
+                        isMyMessage 
+                          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' 
+                          : 'bg-white/20 text-white rounded-2xl rounded-tl-sm'
+                      } px-4 py-2.5 shadow-sm`}
                       title={formatFullTimestamp(timestamp)}
                     >
                       <div className="text-xs font-medium mb-1 opacity-90">
@@ -262,15 +270,14 @@ export default function ChatBroadcast() {
                       <div className="text-sm sm:text-base wrap-break-word leading-relaxed">
                         {m.message}
                       </div>
-                      <div className="text-[10px] opacity-70 mt-1.5">
+                      <div className={`text-[10px] opacity-70 mt-1.5 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                         {formatMessageTime(timestamp)}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
               );
             })}
-            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
