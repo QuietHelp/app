@@ -45,7 +45,8 @@ export default function Home() {
                 QuietHelp
               </h1>
               <p className="text-lg sm:text-xl text-white mb-8 sm:mb-12">
-                Help us match you with the right friend.
+                A quiet, anonymous space.
+                No logins, no pressure, just peer support from one human to another.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button onClick={handleStart} size="lg" className="rounded-full hover-lift">
