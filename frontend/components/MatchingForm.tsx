@@ -96,9 +96,12 @@ function MoodSelectionStep({
 }) {
   return (
     <div className="text-center">
-      <h2 className="h1 text-white mb-4 sm:mb-6">
+      <h2 className="h1 text-white mb-3 sm:mb-4">
         How are you feeling?
       </h2>
+      <p className="text-sm sm:text-base text-white/80 mb-6 sm:mb-8">
+        Pick what fits best right now.
+      </p>
       <div className="flex flex-col gap-3 sm:gap-4">
         {MOODS.map((mood) => (
           <div
@@ -106,10 +109,10 @@ function MoodSelectionStep({
             <button
               type="button"
               onClick={() => onMoodSelect(mood)}
-              className={`w-full p-3 sm:p-4 text-base sm:text-lg font-medium rounded-lg cursor-pointer transition-all duration-300 hover-lift relative overflow-hidden ${
+              className={`w-full p-3 sm:p-4 text-base sm:text-lg font-medium rounded-xl cursor-pointer transition-all duration-200 hover-lift relative overflow-hidden ${
                 selectedMood === mood
-                  ? 'bg-white text-blue-600 shadow-lg'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'
+                  ? 'bg-white text-blue-600 shadow-xl shadow-white/20 scale-[1.02]'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:shadow-md'
               }`}>
               {mood}
             </button>

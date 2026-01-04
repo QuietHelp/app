@@ -28,7 +28,7 @@ export default function Footer() {
             </a>
           </p>
 
-          <p className="text-sm sm:text-base font-semibold text-black text-center">
+          <p className="text-sm sm:text-base font-bold text-black text-center">
             You are not alone.
           </p>
         </div>

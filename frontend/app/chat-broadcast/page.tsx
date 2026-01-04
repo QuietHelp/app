@@ -36,14 +36,12 @@ export default function ChatBroadcastPage() {
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 gradient-bg">
-        <main className="grow flex items-center justify-center">
-          <div className="max-w-4xl mx-auto w-full">
-            <ChatBroadcast sessionId={sessionId} />
-          </div>
-        </main>
-      </div>
+    <div className="min-h-screen gradient-bg">
+      <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-[760px] h-[calc(100vh-8rem)] sm:h-[calc(100vh-4rem)]">
+          <ChatBroadcast sessionId={sessionId} />
+        </div>
+      </main>
     </div>
   );
 }

@@ -40,11 +40,11 @@ export default function MoodPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-4 sm:p-6 lg:p-8 gradient-bg">
-      <main className="grow flex items-center justify-center">
-        <div className="max-w-2xl mx-auto w-full">
+    <div className="min-h-screen gradient-bg">
+      <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-[520px]">
           <MatchingForm onSubmit={handleFormSubmit} />
-          </div>
+        </div>
       </main>
     </div>
   );

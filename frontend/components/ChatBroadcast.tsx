@@ -187,11 +187,15 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
   }, [input, sessionId]);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 mb-4">
+    <div className="h-full flex flex-col bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden shadow-xl">
+      {/* Header - Pinned at top */}
+      <div className="flex-shrink-0 border-b border-white/10 p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="h4 text-white mb-1 flex items-center gap-2" >Global Chat <GlobeIcon className="w-4 h-4 text-blue-600"/></h2>
+            <h2 className="h4 text-white mb-1.5 flex items-center gap-2">
+              Global Chat
+              <GlobeIcon className="w-4 h-4 text-blue-400"/>
+            </h2>
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
               <p className="text-sm text-white/80">
@@ -202,7 +206,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
           {!isConnected && (
             <button
               onClick={handleReconnect}
-              className="text-xs text-blue-300 hover:text-blue-200 underline px-2 py-1"
+              className="text-xs text-blue-300 hover:text-blue-200 underline px-2 py-1 transition-colors"
             >
               Reconnect
             </button>
@@ -215,13 +219,14 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
         )}
       </div>
 
-      <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 overflow-y-auto mb-4 min-h-0">
+      {/* Messages Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 min-h-0">
         {messages.length === 0 ? (
           <div className="text-center text-white/60 mt-8">
-            <h3 className="h3 text-white mb-1">Start the conversation!</h3>
+            <h3 className="text-lg font-medium text-white mb-1">Start the conversation!</h3>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {messages.map((m, idx) => {
               const isMyMessage = m.senderSessionId === sessionIdRef.current; // Same pattern as ChatRoom
               const timestamp = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
@@ -230,29 +235,28 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
               return (
                 <div key={idx}>
                   {showDateSeparator && (
-                    <div className="flex justify-center my-4">
-                      <span className="text-xs text-white/50 bg-white/10 px-3 py-1 rounded-full">
+                    <div className="flex justify-center my-5">
+                      <span className="text-xs text-white/50 bg-white/10 px-3 py-1.5 rounded-full">
                         {formatDateSeparator(timestamp)}
                       </span>
                     </div>
                   )}
-                  <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'} mb-1`}
-                  >
+                  <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                     <div 
                       className={`max-w-[75%] sm:max-w-[65%] ${
                         isMyMessage 
-                          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm' 
-                          : 'bg-white/20 text-white rounded-2xl rounded-tl-sm'
-                      } px-4 py-2.5 shadow-sm`}
+                          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm shadow-md' 
+                          : 'bg-white/25 text-white rounded-2xl rounded-tl-sm shadow-md backdrop-blur-sm'
+                      } px-4 py-3`}
                       title={formatFullTimestamp(timestamp)}
                     >
-                      <div className="text-xs font-medium mb-1 opacity-90">
+                      <div className="text-xs font-medium mb-1.5 opacity-90">
                         {m.username || 'Guest'}
                       </div>
                       <div className="text-sm sm:text-base wrap-break-word leading-relaxed">
                         {m.message}
                       </div>
-                      <div className={`text-[10px] opacity-70 mt-1.5 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`text-[10px] opacity-70 mt-2 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                         {formatMessageTime(timestamp)}
                       </div>
                     </div>
@@ -264,45 +268,48 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
         )}
       </div>
 
-      <div className="flex gap-2 items-end">
-        <div className="flex-1 relative">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message..."
-            rows={1}
-            className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 resize-none min-h-[48px] max-h-32 overflow-y-auto scrollbar-hide disabled:opacity-50"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            disabled={!isConnected}
-            style={{
-              height: 'auto',
-            }}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
-            }}
-          />
-        </div>
-        <button 
-          onClick={sendMessage}
-          disabled={!isConnected || !input.trim()}
-          className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex items-center justify-center min-w-[64px]"
-        >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="w-5 h-5"
+      {/* Input Bar - Pinned at bottom */}
+      <div className="flex-shrink-0 border-t border-white/10 p-4 sm:p-5">
+        <div className="flex gap-3 items-end">
+          <div className="flex-1 relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Share what's on your mind..."
+              rows={1}
+              className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:bg-white/20 resize-none min-h-[48px] max-h-32 overflow-y-auto scrollbar-hide disabled:opacity-50 transition-all"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              disabled={!isConnected}
+              style={{
+                height: 'auto',
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+              }}
+            />
+          </div>
+          <button 
+            onClick={sendMessage}
+            disabled={!isConnected || !input.trim()}
+            className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 hover:shadow-md active:scale-[0.96] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none flex items-center justify-center min-w-[64px]"
           >
-            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-          </svg>
-        </button>
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="currentColor" 
+              className="w-5 h-5"
+            >
+              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
