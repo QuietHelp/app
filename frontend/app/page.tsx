@@ -7,7 +7,6 @@ import { useState, useEffect } from "react"
 
 const CALMING_MESSAGES = [
   "Inhale for 4… hold… exhale for 6.",
-  "You can take this one message at a time.",
   "It's okay to not be okay.",
   "Small steps are still progress.",
   "You're doing better than you think.",
