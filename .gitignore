@@ -47,6 +47,8 @@ hs_err_pid*
 *.iws
 *.iml
 *.ipr
+.vscode/
+*.swp
 
 .classpath
 .factorypath
@@ -54,9 +56,6 @@ hs_err_pid*
 .settings
 .springBeans
 .sts4-cache
-
-.vscode/
-*.swp
 
 # OS
 .DS_Store
