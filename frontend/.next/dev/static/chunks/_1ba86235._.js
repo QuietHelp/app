@@ -17,7 +17,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sockjs$2d$cl
 ;
 ;
 let stompClient = null;
-const WS_URL = `${("TURBOPACK compile-time value", "http://localhost:8080")}/ws`;
+const API_BASE = ("TURBOPACK compile-time value", "http://localhost:8080") || 'http://localhost:8080';
+const WS_URL = `${API_BASE.replace(/\/$/, '')}/ws`;
 function getStompClient() {
     if (stompClient) return stompClient;
     stompClient = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$stomp$2f$stompjs$2f$esm6$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Client"]({
@@ -173,22 +174,42 @@ var _s = __turbopack_context__.k.signature();
 ;
 function ChatRoom({ sessionId, matchData }) {
     _s();
-    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const [messages, setMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [input, setInput] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [myUsername, setMyUsername] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [peerUsername, setPeerUsername] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
-    const [isLeaving, setIsLeaving] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [sessionEnded, setSessionEnded] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [finding, setFinding] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const API_BASE = ("TURBOPACK compile-time value", "http://localhost:8080") || 'http://localhost:8080';
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const subscriptionRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const didSubscribeRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
     const sessionIdRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(sessionId);
-    const historyLoadedRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(false);
     // Handler function for processing messages
     const handleMessage = (messageBody)=>{
         try {
             const data = JSON.parse(messageBody);
             // Validate message structure
             if (data && typeof data.message === 'string') {
+                // If this is a system 'Session ended.' message, clear previous messages and stop
+                if (data.username === 'system' && data.message === 'Session ended.') {
+                    setMessages([
+                        {
+                            ...data,
+                            timestamp: Date.now()
+                        }
+                    ]);
+                    // unsubscribe
+                    if (subscriptionRef.current) {
+                        subscriptionRef.current.unsubscribe();
+                        subscriptionRef.current = null;
+                    }
+                    setSessionEnded(true);
+                    sessionStorage.removeItem('matchData');
+                    // navigate back to home
+                    router.push('/');
+                    return;
+                }
                 // Track peer's username from their messages
                 if (data.senderSessionId && data.senderSessionId !== sessionIdRef.current) {
                     if (data.username) {
@@ -258,34 +279,6 @@ function ChatRoom({ sessionId, matchData }) {
     }["ChatRoom.useEffect"], [
         sessionId
     ]);
-    // Load room chat history on mount
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "ChatRoom.useEffect": ()=>{
-            const loadRoomHistory = {
-                "ChatRoom.useEffect.loadRoomHistory": async ()=>{
-                    if (historyLoadedRef.current || !matchData.roomId) return;
-                    try {
-                        const backendUrl = ("TURBOPACK compile-time value", "http://localhost:8080") || 'http://localhost:8080';
-                        const response = await fetch(`${backendUrl}/api/chat/history/${matchData.roomId}`);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.messages && Array.isArray(data.messages)) {
-                                // Set messages and mark as loaded
-                                setMessages(data.messages);
-                                historyLoadedRef.current = true;
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Error loading room chat history:', err);
-                    // Don't show error to user - just continue without history
-                    }
-                }
-            }["ChatRoom.useEffect.loadRoomHistory"];
-            loadRoomHistory();
-        }
-    }["ChatRoom.useEffect"], [
-        matchData.roomId
-    ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "ChatRoom.useEffect": ()=>{
             let isMounted = true;
@@ -298,6 +291,7 @@ function ChatRoom({ sessionId, matchData }) {
                         subscriptionRef.current.unsubscribe();
                         subscriptionRef.current = null;
                     }
+                    setSessionEnded(false);
                 }
             })["ChatRoom.useEffect"];
         }
@@ -307,6 +301,7 @@ function ChatRoom({ sessionId, matchData }) {
     const sendMessage = async ()=>{
         const messageText = input.trim();
         if (!messageText) return;
+        if (sessionEnded || finding) return;
         try {
             // Moderate message before sending
             const moderationResponse = await fetch('/api/moderate', {
@@ -341,27 +336,56 @@ function ChatRoom({ sessionId, matchData }) {
             alert("Failed to send message. Please try again.");
         }
     };
-    const handleNext = async ()=>{
-        if (isLeaving) return; // Prevent double-clicks
-        setIsLeaving(true);
+    const endSession = async ()=>{
         try {
-            // Unsubscribe from current room
-            if (subscriptionRef.current) {
-                subscriptionRef.current.unsubscribe();
-                subscriptionRef.current = null;
-            }
-            // Reset subscription flag so we can subscribe again
-            didSubscribeRef.current = false;
-            // Clear match data from sessionStorage
-            sessionStorage.removeItem('matchData');
-            // Navigate back to matching page
-            // The matching page will automatically re-join the queue with the same form data
-            router.push('/matching');
-        } catch (error) {
-            console.error("Error leaving room:", error);
-            setIsLeaving(false);
-            alert("Failed to leave room. Please try again.");
+            await fetch(`${API_BASE}/api/session/${sessionId}/end`, {
+                method: 'POST'
+            });
+        } catch (e) {
+        // ignore errors
         }
+        // Clear UI and stop subscribing
+        if (subscriptionRef.current) {
+            subscriptionRef.current.unsubscribe();
+            subscriptionRef.current = null;
+        }
+        setMessages([]);
+        setSessionEnded(true);
+        // show neutral system message locally then navigate to home
+        sessionStorage.removeItem('matchData');
+        router.push('/');
+    };
+    const changeFriend = async ()=>{
+        // retrieve matchingData (mood/age/country) to provide to backend
+        const matchingDataRaw = sessionStorage.getItem('matchingData');
+        let body = {};
+        if (matchingDataRaw) {
+            try {
+                body = JSON.parse(matchingDataRaw);
+            } catch  {
+                body = {};
+            }
+        }
+        try {
+            await fetch(`${API_BASE}/api/session/${sessionId}/change-friend`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+        } catch (e) {
+        // ignore
+        }
+        // Clear UI and show finding state
+        if (subscriptionRef.current) {
+            subscriptionRef.current.unsubscribe();
+            subscriptionRef.current = null;
+        }
+        setMessages([]);
+        setFinding(true);
+        // navigate to matching which will enqueue and find a new friend
+        router.push('/matching');
     };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "h-[calc(100vh-4rem)] flex flex-col",
@@ -378,7 +402,7 @@ function ChatRoom({ sessionId, matchData }) {
                                     children: "Chat Room"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatRoom.tsx",
-                                    lineNumber: 234,
+                                    lineNumber: 247,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -388,7 +412,7 @@ function ChatRoom({ sessionId, matchData }) {
                                             className: "w-2 h-2 bg-green-400 rounded-full animate-pulse"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ChatRoom.tsx",
-                                            lineNumber: 236,
+                                            lineNumber: 249,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -396,115 +420,57 @@ function ChatRoom({ sessionId, matchData }) {
                                             children: peerUsername ? `Connected to ${peerUsername}` : "Connected"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ChatRoom.tsx",
-                                            lineNumber: 237,
+                                            lineNumber: 250,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ChatRoom.tsx",
-                                    lineNumber: 235,
+                                    lineNumber: 248,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ChatRoom.tsx",
-                            lineNumber: 233,
+                            lineNumber: 246,
                             columnNumber: 11
                         }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            onClick: handleNext,
-                            disabled: isLeaving,
-                            className: "px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
-                            title: "Find another person to talk to",
-                            children: isLeaving ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                                        className: "animate-spin h-4 w-4",
-                                        xmlns: "http://www.w3.org/2000/svg",
-                                        fill: "none",
-                                        viewBox: "0 0 24 24",
-                                        children: [
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
-                                                className: "opacity-25",
-                                                cx: "12",
-                                                cy: "12",
-                                                r: "10",
-                                                stroke: "currentColor",
-                                                strokeWidth: "4"
-                                            }, void 0, false, {
-                                                fileName: "[project]/components/ChatRoom.tsx",
-                                                lineNumber: 253,
-                                                columnNumber: 19
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
-                                                className: "opacity-75",
-                                                fill: "currentColor",
-                                                d: "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                            }, void 0, false, {
-                                                fileName: "[project]/components/ChatRoom.tsx",
-                                                lineNumber: 254,
-                                                columnNumber: 19
-                                            }, this)
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 252,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        children: "Leaving..."
-                                    }, void 0, false, {
-                                        fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 256,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                                        xmlns: "http://www.w3.org/2000/svg",
-                                        fill: "none",
-                                        viewBox: "0 0 24 24",
-                                        strokeWidth: 2,
-                                        stroke: "currentColor",
-                                        className: "w-4 h-4",
-                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
-                                            strokeLinecap: "round",
-                                            strokeLinejoin: "round",
-                                            d: "M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/ChatRoom.tsx",
-                                            lineNumber: 261,
-                                            columnNumber: 19
-                                        }, this)
-                                    }, void 0, false, {
-                                        fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 260,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        children: "Next"
-                                    }, void 0, false, {
-                                        fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 263,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true)
-                        }, void 0, false, {
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex gap-2",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: changeFriend,
+                                    className: "px-3 py-2 bg-white/10 text-white rounded-md hover:bg-white/20",
+                                    children: "Change Friend"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/ChatRoom.tsx",
+                                    lineNumber: 258,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    onClick: endSession,
+                                    className: "px-3 py-2 bg-red-600 text-white rounded-md hover:opacity-90",
+                                    children: "End Session"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/ChatRoom.tsx",
+                                    lineNumber: 259,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
                             fileName: "[project]/components/ChatRoom.tsx",
-                            lineNumber: 244,
+                            lineNumber: 257,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ChatRoom.tsx",
-                    lineNumber: 232,
+                    lineNumber: 245,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ChatRoom.tsx",
-                lineNumber: 231,
+                lineNumber: 244,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -516,12 +482,12 @@ function ChatRoom({ sessionId, matchData }) {
                         children: "Start the conversation!"
                     }, void 0, false, {
                         fileName: "[project]/components/ChatRoom.tsx",
-                        lineNumber: 273,
+                        lineNumber: 267,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/ChatRoom.tsx",
-                    lineNumber: 272,
+                    lineNumber: 266,
                     columnNumber: 11
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "space-y-3",
@@ -538,12 +504,12 @@ function ChatRoom({ sessionId, matchData }) {
                                         children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$chatUtils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatDateSeparator"])(timestamp)
                                     }, void 0, false, {
                                         fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 286,
+                                        lineNumber: 280,
                                         columnNumber: 23
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatRoom.tsx",
-                                    lineNumber: 285,
+                                    lineNumber: 279,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -557,7 +523,7 @@ function ChatRoom({ sessionId, matchData }) {
                                                 children: m.message
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatRoom.tsx",
-                                                lineNumber: 301,
+                                                lineNumber: 295,
                                                 columnNumber: 23
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -565,35 +531,35 @@ function ChatRoom({ sessionId, matchData }) {
                                                 children: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$chatUtils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["formatMessageTime"])(timestamp)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ChatRoom.tsx",
-                                                lineNumber: 304,
+                                                lineNumber: 298,
                                                 columnNumber: 23
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ChatRoom.tsx",
-                                        lineNumber: 293,
+                                        lineNumber: 287,
                                         columnNumber: 21
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ChatRoom.tsx",
-                                    lineNumber: 291,
+                                    lineNumber: 285,
                                     columnNumber: 19
                                 }, this)
                             ]
                         }, idx, true, {
                             fileName: "[project]/components/ChatRoom.tsx",
-                            lineNumber: 283,
+                            lineNumber: 277,
                             columnNumber: 17
                         }, this);
                     })
                 }, void 0, false, {
                     fileName: "[project]/components/ChatRoom.tsx",
-                    lineNumber: 276,
+                    lineNumber: 270,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ChatRoom.tsx",
-                lineNumber: 270,
+                lineNumber: 264,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -623,12 +589,12 @@ function ChatRoom({ sessionId, matchData }) {
                             }
                         }, void 0, false, {
                             fileName: "[project]/components/ChatRoom.tsx",
-                            lineNumber: 318,
+                            lineNumber: 312,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/ChatRoom.tsx",
-                        lineNumber: 317,
+                        lineNumber: 311,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -644,33 +610,33 @@ function ChatRoom({ sessionId, matchData }) {
                                 d: "M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"
                             }, void 0, false, {
                                 fileName: "[project]/components/ChatRoom.tsx",
-                                lineNumber: 351,
+                                lineNumber: 345,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ChatRoom.tsx",
-                            lineNumber: 345,
+                            lineNumber: 339,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/ChatRoom.tsx",
-                        lineNumber: 340,
+                        lineNumber: 334,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/ChatRoom.tsx",
-                lineNumber: 316,
+                lineNumber: 310,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/ChatRoom.tsx",
-        lineNumber: 230,
+        lineNumber: 243,
         columnNumber: 5
     }, this);
 }
-_s(ChatRoom, "Pv+252686qaPq7obvm7fzcvkUNk=", false, function() {
+_s(ChatRoom, "5X54N5izc1DRQlbKTFrQPn2rBJo=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
     ];

@@ -1,7 +1,5 @@
 package com.quiethelp.backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quiethelp.backend.model.ChatMessageDTO;
 import com.quiethelp.backend.model.ChatMessageResponse;
 import org.slf4j.Logger;
@@ -21,8 +19,6 @@ public class ChatService {
     
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private static final String REDIS_MESSAGE_KEY = "chat:messages";
-    private static final String REDIS_ROOM_MESSAGE_KEY_PREFIX = "chat:room:";
-    private static final int MAX_MESSAGES = 100; // Keep last 100 messages in Redis
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -32,9 +28,6 @@ public class ChatService {
     
     @Autowired
     private UsernameService usernameService;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
     
     // Processes and broadcasts a new chat message
     // Supports both broadcast chat (no roomId) and room-based chat (with roomId)

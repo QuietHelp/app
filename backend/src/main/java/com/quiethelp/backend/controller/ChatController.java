@@ -31,8 +31,11 @@ public class ChatController {
             
             // Extract username from DTO first, then from session attributes as fallback
             String username = messageDTO.getUsername();
-            if ((username == null || username.trim().isEmpty()) && headerAccessor.getSessionAttributes() != null) {
-                username = (String) headerAccessor.getSessionAttributes().get("username");
+            if (username == null || username.trim().isEmpty()) {
+                var sessionAttributes = headerAccessor.getSessionAttributes();
+                if (sessionAttributes != null) {
+                    username = (String) sessionAttributes.get("username");
+                }
             }
             
             // Process and broadcast message

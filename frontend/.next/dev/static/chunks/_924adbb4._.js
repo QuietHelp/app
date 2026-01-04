@@ -17,7 +17,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sockjs$2d$cl
 ;
 ;
 let stompClient = null;
-const WS_URL = `${("TURBOPACK compile-time value", "http://localhost:8080")}/ws`;
+const API_BASE = ("TURBOPACK compile-time value", "http://localhost:8080") || 'http://localhost:8080';
+const WS_URL = `${API_BASE.replace(/\/$/, '')}/ws`;
 function getStompClient() {
     if (stompClient) return stompClient;
     stompClient = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$stomp$2f$stompjs$2f$esm6$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Client"]({
