@@ -1,0 +1,10 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/moderate/route": "app/api/moderate/route.js",
+  "/chat-broadcast/page": "app/chat-broadcast/page.js",
+  "/chat/[roomId]/page": "app/chat/[roomId]/page.js",
+  "/matching/page": "app/matching/page.js",
+  "/mood/page": "app/mood/page.js",
+  "/page": "app/page.js"
+}

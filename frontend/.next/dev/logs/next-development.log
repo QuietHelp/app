@@ -1,0 +1,74 @@
+[00:00:01.013] Server  LOG     ✓ Ready in 790ms
+[00:00:04.652] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:04.852] Browser LOG     WebSocket connected
+[00:00:09.891] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:10.006] Browser LOG     WebSocket connected
+[00:00:12.844] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:26.028] Server  LOG     [Moderation] Result: {}
+[00:00:31.135] Server  LOG     [Moderation] Result: {}
+[18:44:14.907] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[18:44:21.757] Server  LOG     [Moderation] Result: {}
+[18:44:30.859] Server  LOG     [Moderation] Result: {}
+[18:44:38.682] Server  LOG     [Moderation] Result: {}
+[18:47:40.661] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[20:13:48.284] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[21:28:56.206] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:18:44.192] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:18:47.566] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:18:53.092] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:18:55.029] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:18:57.633] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:18:59.705] Browser LOG     WebSocket connected
+[23:19:02.672] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:19:05.977] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:19:09.103] Browser WARN    You are trying to animate backgroundColor from "transparent" to "#5227FF". "transparent" is not an animatable value.. For more information and steps for solving, visit https://motion.dev/troubleshooting/value-not-animatable
+[23:19:12.137] Browser LOG     WebSocket connected
+[23:19:16.262] Server  LOG     [Moderation] Result: {}
+[23:19:17.718] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:19:17.838] Browser LOG     WebSocket connected
+[23:19:22.188] Server  LOG     [Moderation] Result: {}
+[23:19:23.328] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:19:23.453] Browser LOG     WebSocket connected
+[23:19:26.206] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[23:19:26.324] Browser LOG     WebSocket connected
+[23:20:50.736] Server  LOG     ✓ Compiled in 173ms
+[23:20:52.928] Server  LOG     ✓ Compiled in 96ms
+[23:21:00.258] Server  LOG     ✓ Compiled in 25ms
+[23:21:08.777] Server  LOG     ✓ Compiled in 290ms
+[23:22:40.464] Browser LOG     WebSocket connected
+[23:22:40.472] Browser LOG     WebSocket connected
+[23:57:23.545] Browser LOG     WebSocket connected
+[23:57:23.550] Browser LOG     WebSocket connected
+[24:13:11.354] Browser LOG     WebSocket connected
+[24:13:11.356] Browser LOG     WebSocket connected
+[24:23:12.229] Browser LOG     WebSocket connected
+[24:23:12.292] Browser LOG     WebSocket connected
+[24:26:34.230] Browser LOG     WebSocket connected
+[24:26:34.233] Browser LOG     WebSocket connected
+[24:37:33.719] Browser LOG     WebSocket connected
+[24:37:33.721] Browser LOG     WebSocket connected
+[24:45:37.853] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[24:45:38.031] Browser LOG     WebSocket connected
+[24:48:04.142] Browser LOG     WebSocket connected
+[24:48:04.143] Browser LOG     WebSocket connected
+[24:53:44.028] Browser LOG     WebSocket connected
+[24:53:44.030] Browser LOG     WebSocket connected
+[25:11:12.592] Browser LOG     WebSocket connected
+[25:11:12.592] Browser LOG     WebSocket connected
+[25:22:41.548] Browser LOG     WebSocket connected
+[25:22:41.549] Browser LOG     WebSocket connected
+[25:25:11.427] Browser LOG     WebSocket connected
+[25:25:11.429] Browser LOG     WebSocket connected
+[25:34:31.690] Browser LOG     WebSocket connected
+[25:34:31.691] Browser LOG     WebSocket connected
+[38:19:07.931] Server  LOG     [Moderation] Result: {}
+[38:19:10.751] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[38:19:10.901] Browser LOG     WebSocket connected
+[38:19:14.380] Server  LOG     [Moderation] Result: {}
+[38:19:19.859] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[38:19:20.004] Browser LOG     WebSocket connected
+[38:19:23.347] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[38:19:25.284] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[38:19:25.404] Browser LOG     WebSocket connected
+[38:19:27.190] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[38:19:27.303] Browser LOG     WebSocket connected
