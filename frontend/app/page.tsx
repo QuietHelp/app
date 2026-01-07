@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { ArrowRight, GlobeIcon, MessageSquare } from "lucide-react"
 import { useState, useEffect } from "react"
+import Particles from '@/components/Particles';
 
 const CALMING_MESSAGES = [
   "Inhale for 4… hold… exhale for 6.",
@@ -55,18 +56,16 @@ export default function Home() {
   return (
     <div className="min-h-screen gradient-bg">
       <main className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full max-w-[600px] text-center landing-card">
+        <div className="w-full h-full max-w-[600px] text-center landing-card">
+        <Particles particleColors={['#ffffff', '#ffffff']} particleCount={500} particleSpread={10} speed={0.1} particleBaseSize={100} moveParticlesOnHover={true} alphaParticles={false} disableRotation={false} />
           <h1 className="h1 text-white mb-4 sm:mb-6 transition-opacity duration-300">
-            QuietHelp
+           QuietHelp
           </h1>
           <p className="text-lg sm:text-xl text-white mb-3 sm:mb-4 font-medium">
             Anonymous peer support. No logins. No pressure.
           </p>
-          <p className="text-sm sm:text-base text-white/90 mb-6 sm:mb-8">
-            Take a breath — you are not alone.
-          </p>
           {calmMessage && (
-            <p className="text-xs sm:text-sm text-white/70 mb-8 sm:mb-10 italic font-light">
+            <p className="text-xs sm:text-xl text-white/70 mb-8 sm:mb-10 italic font-medium">
               {calmMessage}
             </p>
           )}
@@ -77,7 +76,7 @@ export default function Home() {
               className="rounded-full hover-lift transition-all duration-200 hover:shadow-xl hover:shadow-white/20 active:scale-[0.98] !bg-white !text-blue-600 hover:!bg-white/95 font-semibold flex-1 sm:flex-none"
             >
               Get Started
-              <ArrowRight className="ml-2 h-5 w-5 !text-blue-600" />
+              <ArrowRight className="ml-2 h-5 w-5 text-blue-600" />
             </Button>
             <Button
               onClick={handleGlobalChat}

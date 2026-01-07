@@ -46,8 +46,36 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
     usernameRef.current = username;
   }, []);
 
- 
-  // Chat history disabled: do not load past messages on mount
+  // Load chat history when component mounts
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/chat/history`);
+        if (!response.ok) {
+          console.error('Failed to load chat history');
+          return;
+        }
+        
+        const data = await response.json();
+        if (data.messages && Array.isArray(data.messages)) {
+          // Convert messages to ChatMessage format
+          const historyMessages: ChatMessage[] = data.messages.map((msg: any) => ({
+            message: msg.message,
+            timestamp: msg.timestamp,
+            username: msg.username,
+            senderSessionId: msg.senderSessionId,
+          }));
+          
+          setMessages(historyMessages);
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+        // Don't block UI if history fails to load
+      }
+    };
+
+    loadChatHistory();
+  }, [API_BASE]);
 
   // Connect to WebSocket
   const connect = useCallback(() => {

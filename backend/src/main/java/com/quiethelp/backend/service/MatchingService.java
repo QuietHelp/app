@@ -8,6 +8,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import com.quiethelp.backend.model.ChatMessageResponse;
@@ -30,14 +31,23 @@ public class MatchingService {
     private static final int TTL_MINUTES = 30;
 
     public void joinMatchQueue(String sessionId, MoodType mood, Integer age, String country) {
+        // Validate non-null parameters
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            throw new IllegalArgumentException("sessionId cannot be null or empty");
+        }
+        if (mood == null) {
+            throw new IllegalArgumentException("mood cannot be null");
+        }
+        
         String queueKey = QUEUE_PREFIX + mood.name();
         
         // Check if there's someone waiting
         String peerSessionId = redisTemplate.opsForList().rightPop(queueKey);
         
-        if (peerSessionId != null) {
+        if (peerSessionId != null && !peerSessionId.trim().isEmpty()) {
             // Match found!
-            String roomId = UUID.randomUUID().toString();
+            String roomId = Objects.requireNonNull(UUID.randomUUID().toString(), "roomId cannot be null");
+            final String validatedPeerSessionId = Objects.requireNonNull(peerSessionId, "peerSessionId cannot be null");
             
             // Store room mappings with TTL
             redisTemplate.opsForValue().set(
@@ -47,7 +57,7 @@ public class MatchingService {
                 TimeUnit.MINUTES
             );
             redisTemplate.opsForValue().set(
-                SESSION_ROOM_PREFIX + peerSessionId, 
+                SESSION_ROOM_PREFIX + validatedPeerSessionId, 
                 roomId, 
                 TTL_MINUTES, 
                 TimeUnit.MINUTES
@@ -56,20 +66,20 @@ public class MatchingService {
             // Store room info
             redisTemplate.opsForValue().set(
                 ROOM_PREFIX + roomId, 
-                sessionId + ":" + peerSessionId, 
+                sessionId + ":" + validatedPeerSessionId, 
                 TTL_MINUTES, 
                 TimeUnit.MINUTES
             );
             
             // Notify both users
-            MatchFound match1 = new MatchFound(roomId, peerSessionId);
+            MatchFound match1 = new MatchFound(roomId, validatedPeerSessionId);
             MatchFound match2 = new MatchFound(roomId, sessionId);
             
             messagingTemplate.convertAndSend("/topic/match/" + sessionId, match1);
-            messagingTemplate.convertAndSend("/topic/match/" + peerSessionId, match2);
+            messagingTemplate.convertAndSend("/topic/match/" + validatedPeerSessionId, match2);
             
-            metricsService.recordEvent("MATCH_FOUND", sessionId, Map.of("roomId", roomId, "peerSessionId", peerSessionId, "age", String.valueOf(age), "country", country));
-            metricsService.recordEvent("MATCH_FOUND", peerSessionId, Map.of("roomId", roomId, "peerSessionId", sessionId));
+            metricsService.recordEvent("MATCH_FOUND", sessionId, Map.of("roomId", roomId, "peerSessionId", validatedPeerSessionId, "age", String.valueOf(age), "country", country));
+            metricsService.recordEvent("MATCH_FOUND", validatedPeerSessionId, Map.of("roomId", roomId, "peerSessionId", sessionId));
         } else {
             // No match yet, add to queue
             redisTemplate.opsForList().leftPush(queueKey, sessionId);

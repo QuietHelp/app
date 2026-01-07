@@ -14,12 +14,12 @@ public class UsernameService {
     // Uses a simple counter for readability
     public String generateUsername() {
         int counter = guestCounter.getAndIncrement();
-        return "Guest-" + String.format("%04d", counter % 10000);
+        return "Friend-" + String.format("%04d", counter % 10000);
     }
     // Generates a username from a UUID (fallback method)
     public String generateUsernameFromUUID() {
         String uuid = UUID.randomUUID().toString().substring(0, 8);
-        return "Guest-" + uuid;
+        return "Friend-" + uuid;
     }
 }
 

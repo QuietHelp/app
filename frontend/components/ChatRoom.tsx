@@ -6,6 +6,7 @@ import type { IMessage, StompSubscription } from "@stomp/stompjs";
 import { getStompClient, waitForConnection } from "@/lib/ws";
 import { formatMessageTime, formatFullTimestamp, shouldShowDateSeparator, formatDateSeparator } from "../lib/chatUtils";
 
+
 export type ChatMessage = {
   roomId?: string;
   senderSessionId?: string;
@@ -129,6 +130,45 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
+
+  // Load chat history when component mounts or roomId changes
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/chat/history?roomId=${matchData.roomId}`);
+        if (!response.ok) {
+          console.error('Failed to load chat history');
+          return;
+        }
+        
+        const data = await response.json();
+        if (data.messages && Array.isArray(data.messages)) {
+          // Convert messages to ChatMessage format
+          const historyMessages: ChatMessage[] = data.messages.map((msg: any) => ({
+            roomId: matchData.roomId,
+            senderSessionId: msg.senderSessionId,
+            message: msg.message,
+            timestamp: msg.timestamp,
+            username: msg.username,
+          }));
+          
+          setMessages(historyMessages);
+          
+          // Track peer username from history
+          historyMessages.forEach((m) => {
+            if (m.senderSessionId && m.senderSessionId !== sessionIdRef.current && m.username) {
+              setPeerUsername(m.username);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+        // Don't block UI if history fails to load
+      }
+    };
+
+    loadChatHistory();
+  }, [matchData.roomId, API_BASE]);
 
   useEffect(() => {
     let isMounted = true;
@@ -313,7 +353,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Share what's on your mind..."
             rows={1}
-            className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:bg-white/20 resize-none min-h-[48px] max-h-32 overflow-y-auto scrollbar-hide transition-all"
+            className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:bg-white/20 resize-none min-h-12 max-h-32 overflow-y-auto scrollbar-hide transition-all"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -333,7 +373,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
         <button 
           onClick={sendMessage}
           disabled={!input.trim()}
-          className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 hover:shadow-md active:scale-[0.96] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none flex items-center justify-center min-w-[64px]"
+          className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 hover:shadow-md active:scale-[0.96] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none flex items-center justify-center min-w-16"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
