@@ -47,7 +47,7 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  background: linear-gradient(135deg, #a98a0c 0%, #764ba2 50%, #667eea 100%);
   background-size: 200% 200%;
   animation: gradientShift 15s ease infinite;
   min-height: 100vh;
@@ -247,7 +247,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
-
 @layer base {
   * {
     @apply border-border;
@@ -256,7 +255,11 @@
     @apply outline-2 outline-offset-2 outline-ring/70;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: #000000;
+  }
+  html {
+    background: #000000;
   }
 }
 
@@ -268,4 +271,23 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Ensure Hyperspeed canvas fills container and is centered */
+#lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#lights canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
 }

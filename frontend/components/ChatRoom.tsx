@@ -32,6 +32,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   const [peerUsername, setPeerUsername] = useState<string>("");
   const [sessionEnded, setSessionEnded] = useState(false);
   const [finding, setFinding] = useState(false);
+  const [moderationMessage, setModerationMessage] = useState<string | null>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
   const router = useRouter();
  
@@ -205,7 +206,8 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
       const moderationResult = await moderationResponse.json();
 
       if (!moderationResult.isAppropriate) {
-        alert(`Message cannot be sent: ${moderationResult.reason || 'Content violates community guidelines'}`);
+        setModerationMessage(`Message cannot be sent: ${moderationResult.reason || 'Content violates community guidelines'}`);
+        setTimeout
         return;
       }
 
