@@ -282,14 +282,14 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 mb-4">
+    <div className="h-[calc(100vh-4rem)] flex flex-col gap-4">
+      <div className="surface-card p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="h4 text-white mb-1">Chat Room</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">Chat Room</h2>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <p className="text-sm text-white/80">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {peerUsername 
                   ? `Connected to ${peerUsername}`
                   : "Connected"}
@@ -297,16 +297,17 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={changeFriend} className="px-3 py-2 bg-white/10 text-white rounded-md hover:bg-white/20">Change Friend</button>
-            <button onClick={endSession} className="px-3 py-2 bg-red-600 text-white rounded-md hover:opacity-90">End Session</button>
+            <button onClick={changeFriend} className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">Change Friend</button>
+            <button onClick={endSession} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm">End Session</button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 sm:p-6 overflow-y-auto mb-4 min-h-0">
+      <div className="flex-1 surface-card p-4 sm:p-6 overflow-y-auto min-h-0 scrollbar-hide">
         {messages.length === 0 ? (
-          <div className="text-center text-white/60 mt-8">
-            <h3 className="text-lg font-medium text-white mb-1">Start the conversation!</h3>
+          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+            <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-1">Start the conversation!</h3>
+            <p className="text-sm">Share what's on your mind. Your peer is listening.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -319,24 +320,24 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
                 <div key={idx}>
                   {showDateSeparator && (
                     <div className="flex justify-center my-5">
-                      <span className="text-xs text-white/50 bg-white/10 px-3 py-1.5 rounded-full">
+                      <span className="text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full">
                         {formatDateSeparator(timestamp)}
                       </span>
                     </div>
                   )}
                   <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                     <div 
-                      className={`max-w-[75%] sm:max-w-[65%] ${
+                      className={`max-w-[75%] sm:max-w-[65%] rounded-2xl px-4 py-3 shadow-sm ${
                         isMyMessage 
-                          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm shadow-md' 
-                          : 'bg-white/25 text-white rounded-2xl rounded-tl-sm shadow-md backdrop-blur-sm'
-                      } px-4 py-3`}
+                          ? 'bg-blue-600 text-white rounded-br-sm' 
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
+                      }`}
                       title={formatFullTimestamp(timestamp)}
                     >
-                      <div className="text-sm sm:text-base wrap-break-word leading-relaxed">
+                      <div className="text-sm sm:text-base break-words leading-relaxed">
                         {m.message}
                       </div>
-                      <div className={`text-[10px] opacity-70 mt-2 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`text-[11px] opacity-70 mt-2 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                         {formatMessageTime(timestamp)}
                       </div>
                     </div>
@@ -355,7 +356,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Share what's on your mind..."
             rows={1}
-            className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:bg-white/20 resize-none min-h-12 max-h-32 overflow-y-auto scrollbar-hide transition-all"
+            className="w-full p-3 sm:p-4 text-base bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none min-h-12 max-h-32 overflow-y-auto scrollbar-hide transition-all"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -375,7 +376,7 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
         <button 
           onClick={sendMessage}
           disabled={!input.trim()}
-          className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 hover:shadow-md active:scale-[0.96] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none flex items-center justify-center min-w-16"
+          className="px-5 sm:px-6 py-3 sm:py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-medium hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-[0.96] transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center min-w-12 shadow-md"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 

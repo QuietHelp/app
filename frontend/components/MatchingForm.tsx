@@ -94,29 +94,36 @@ function MoodSelectionStep({
   selectedMood: string; 
   onMoodSelect: (mood: string) => void; 
 }) {
+  const moodLabels: Record<string, string> = {
+    'STRESS': '😰 Stressed',
+    'LONELY': '😔 Lonely',
+    'BURNOUT': '🔥 Burnout',
+    'PANIC': '😨 Panic',
+    'OTHER': '🤔 Other'
+  };
+
   return (
     <div className="text-center">
-      <h2 className="h1 text-white mb-3 sm:mb-4">
+      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
         How are you feeling?
       </h2>
-      <p className="text-sm sm:text-base text-white/80 mb-6 sm:mb-8">
+      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-8 sm:mb-10">
         Pick what fits best right now.
       </p>
       <div className="flex flex-col gap-3 sm:gap-4">
         {MOODS.map((mood) => (
-          <div
-            key={mood}>
+          <div key={mood}>
             <button
               type="button"
               onClick={() => onMoodSelect(mood)}
-              className={`w-full p-3 sm:p-4 text-base sm:text-lg font-medium rounded-xl cursor-pointer transition-all duration-200 hover-lift relative overflow-hidden ${
+              className={`w-full p-4 sm:p-5 text-base sm:text-lg font-semibold rounded-xl cursor-pointer transition-all duration-200 hover-lift relative overflow-hidden ${
                 selectedMood === mood
-                  ? 'bg-white text-blue-600 shadow-xl shadow-white/20 scale-[1.02]'
-                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:shadow-md'
+                  ? 'bg-blue-600 text-white shadow-lg dark:bg-blue-500'
+                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-transparent hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md'
               }`}>
-              {mood}
+              {moodLabels[mood]}
             </button>
-         </div>
+          </div>
         ))}
       </div>
     </div>
@@ -131,11 +138,9 @@ function AgeInputStep({
   onAgeChange: (age: string) => void; 
 }) {
   return (
-      <div className="text-center">
-        <h2 
-        className="text-2xl sm:text-3xl font-semibold text-white mb-3 sm:mb-4"
-      >
-        What&apos;s your age?
+    <div className="text-center">
+      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        What's your age?
       </h2>
       <div className="max-w-md mx-auto">
         <div className="mb-4">
@@ -145,7 +150,7 @@ function AgeInputStep({
             value={selectedAge}
             onChange={(e) => onAgeChange(e.target.value)}
             placeholder="Enter your age"
-            className="w-full p-3 sm:p-4 text-base sm:text-lg text-center bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20"
+            className="w-full p-4 sm:p-5 text-base sm:text-lg text-center bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             min="13"
             max="120"
             required
@@ -165,8 +170,7 @@ function CountrySelectionStep({
 }) {
   return (
     <div className="text-center">
-      <h2 
-        className="h1 text-white mb-4 sm:mb-6">
+      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
         Where are you located?
       </h2>
       <div className="max-w-md mx-auto">

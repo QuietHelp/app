@@ -54,60 +54,18 @@ export default function Home() {
 
   
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
-      {/* Hyperspeed background - fixed behind all content */}
-      <div className="fixed inset-0 z-0" style={{ width: '100vw', height: '100vh', backgroundColor: '#000000' }}>
-        <Hyperspeed
-          effectOptions={{
-            onSpeedUp: () => { },
-            onSlowDown: () => { },
-            distortion: 'turbulentDistortion',
-            length: 400,
-            roadWidth: 10,
-            islandWidth: 2,
-            lanesPerRoad: 4,
-            fov: 90,
-            fovSpeedUp: 150,
-            speedUp: 2,
-            carLightsFade: 0.4,
-            totalSideLightSticks: 20,
-            lightPairsPerRoadWay: 40,
-            shoulderLinesWidthPercentage: 0.05,
-            brokenLinesWidthPercentage: 0.1,
-            brokenLinesLengthPercentage: 0.5,
-            lightStickWidth: [0.12, 0.5],
-            lightStickHeight: [1.3, 1.7],
-            movingAwaySpeed: [60, 80],
-            movingCloserSpeed: [-120, -160],
-            carLightsLength: [400 * 0.03, 400 * 0.2],
-            carLightsRadius: [0.05, 0.14],
-            carWidthPercentage: [0.3, 0.5],
-            carShiftX: [-0.8, 0.8],
-            carFloorSeparation: [0, 5],
-            colors: {
-              roadColor: 0x080808,
-              islandColor: 0x0a0a0a,
-              background: 0x000000,
-              shoulderLines: 0xFFFFFF,
-              brokenLines: 0xFFFFFF,
-              leftCars: [0xD856BF, 0x6750A2, 0xC247AC],
-              rightCars: [0x03B3C3, 0x0E5EA5, 0x324555],
-              sticks: 0x03B3C3,
-            }
-          }}
-        />
-      </div>
-      {/* Content layer - positioned above background */}
-      <main className="relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <div className="w-full h-full max-w-[600px] text-center landing-card">
-          <h1 className="h1 text-white mb-4 sm:mb-6 transition-opacity duration-300">
-           QuietHelp
+    <div className="min-h-screen relative overflow-hidden gradient-bg">
+      {/* Content layer */}
+      <main className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-[600px] text-center landing-card p-8 sm:p-12">
+          <h1 className="h1 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
+            QuietHelp
           </h1>
-          <p className="text-lg sm:text-xl text-white mb-3 sm:mb-4 font-medium">
+          <p className="text-lg sm:text-lg text-gray-700 dark:text-gray-300 mb-3 sm:mb-4 font-medium">
             Anonymous peer support. No logins. No pressure.
           </p>
           {calmMessage && (
-            <p className="text-xs sm:text-xl text-white/70 mb-8 sm:mb-10 italic font-medium">
+            <p className="text-base sm:text-base text-gray-600 dark:text-gray-400 mb-8 sm:mb-10 italic font-medium">
               {calmMessage}
             </p>
           )}
@@ -115,19 +73,18 @@ export default function Home() {
             <Button 
               onClick={handleStart} 
               size="lg" 
-              className="rounded-full hover-lift transition-all duration-200 hover:shadow-xl hover:shadow-white/20 active:scale-[0.98] !bg-white !text-blue-600 hover:!bg-white/95 font-semibold flex-1 sm:flex-none"
+              className="rounded-xl hover-lift transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white font-semibold flex-1 sm:flex-none shadow-md hover:shadow-lg dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               Get Started
-              <ArrowRight className="ml-2 h-5 w-5 text-blue-600" />
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
               onClick={handleGlobalChat}
               size="lg"
-              className="rounded-full hover-lift transition-all duration-200 bg-white/10 hover:bg-white/20 text-white border border-white/30 hover:border-white/50 active:scale-[0.98] backdrop-blur-sm font-semibold flex-1 sm:flex-none"
+              className="rounded-xl hover-lift transition-all duration-200 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold flex-1 sm:flex-none dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white shadow-md hover:shadow-lg"
             >
               <MessageSquare className="mr-2 h-5 w-5" />
-              Try Global Chat
-              <GlobeIcon className="ml-2 h-5 w-5" />
+              Global Chat
             </Button>
           </div>
         </div> 

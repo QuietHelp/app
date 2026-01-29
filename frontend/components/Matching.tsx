@@ -78,22 +78,22 @@ export default function Matching({ sessionId, mood, age, country, onMatchFound }
       className="text-center"
     >
       <h2 
-        className="h1 text-white mb-4 sm:mb-6"
+        className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6"
       >
         Looking for someone...
       </h2>
       <p 
-        className="text-lg sm:text-xl text-white/90"
+        className="text-lg sm:text-lg text-gray-600 dark:text-gray-400"
       >
-        We&apos;re finding someone who understands.
+        We're finding someone who understands.
       </p>
       <div 
-        className="mt-8 flex justify-center"
+        className="mt-10 flex justify-center"
       >
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-white/30 border-t-white"></div>
+        <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400"></div>
       </div>
       <footer 
-        className="mt-8 text-white/70 text-sm"
+        className="mt-10 text-gray-600 dark:text-gray-400 text-sm"
       >
       </footer>
     </div>

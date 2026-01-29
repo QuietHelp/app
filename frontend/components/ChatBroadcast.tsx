@@ -215,18 +215,18 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
   }, [input, sessionId]);
 
   return (
-    <div className="h-full flex flex-col bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden shadow-xl">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
       {/* Header - Pinned at top */}
-      <div className="flex-shrink-0 border-b border-white/10 p-4 sm:p-5">
+      <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="h4 text-white mb-1.5 flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1.5 flex items-center gap-2">
               Global Chat
-              <GlobeIcon className="w-4 h-4 text-blue-400"/>
+              <GlobeIcon className="w-5 h-5 text-cyan-500"/>
             </h2>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
-              <p className="text-sm text-white/80">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {isConnected ? 'Connected' : 'Connecting...'}
               </p>
             </div>
@@ -234,24 +234,25 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
           {!isConnected && (
             <button
               onClick={handleReconnect}
-              className="text-xs text-blue-300 hover:text-blue-200 underline px-2 py-1 transition-colors"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline px-2 py-1 transition-colors font-medium"
             >
               Reconnect
             </button>
           )}
         </div>
         {error && (
-          <p className="text-xs text-red-300 mt-2">
+          <p className="text-xs text-red-600 dark:text-red-400 mt-2">
             {error}
           </p>
         )}
       </div>
 
       {/* Messages Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5 min-h-0">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 min-h-0 scrollbar-hide">
         {messages.length === 0 ? (
-          <div className="text-center text-white/60 mt-8">
-            <h3 className="text-lg font-medium text-white mb-1">Start the conversation!</h3>
+          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Start the conversation!</h3>
+            <p className="text-sm">Be kind and supportive with others.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -264,27 +265,27 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
                 <div key={idx}>
                   {showDateSeparator && (
                     <div className="flex justify-center my-5">
-                      <span className="text-xs text-white/50 bg-white/10 px-3 py-1.5 rounded-full">
+                      <span className="text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full">
                         {formatDateSeparator(timestamp)}
                       </span>
                     </div>
                   )}
                   <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                     <div 
-                      className={`max-w-[75%] sm:max-w-[65%] ${
+                      className={`max-w-[75%] sm:max-w-[65%] rounded-2xl px-4 py-3 shadow-sm ${
                         isMyMessage 
-                          ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm shadow-md' 
-                          : 'bg-white/25 text-white rounded-2xl rounded-tl-sm shadow-md backdrop-blur-sm'
-                      } px-4 py-3`}
+                          ? 'bg-blue-600 text-white rounded-br-sm' 
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
+                      }`}
                       title={formatFullTimestamp(timestamp)}
                     >
-                      <div className="text-xs font-medium mb-1.5 opacity-90">
+                      <div className="text-xs font-semibold mb-1.5 opacity-90">
                         {m.username || 'Guest'}
                       </div>
-                      <div className="text-sm sm:text-base wrap-break-word leading-relaxed">
+                      <div className="text-sm sm:text-base break-words leading-relaxed">
                         {m.message}
                       </div>
-                      <div className={`text-[10px] opacity-70 mt-2 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`text-[11px] opacity-70 mt-2 flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
                         {formatMessageTime(timestamp)}
                       </div>
                     </div>
@@ -297,7 +298,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
       </div>
 
       {/* Input Bar - Pinned at bottom */}
-      <div className="flex-shrink-0 border-t border-white/10 p-4 sm:p-5">
+      <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
         <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <textarea
@@ -305,7 +306,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Share what's on your mind..."
               rows={1}
-              className="w-full p-3 sm:p-4 text-base bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:bg-white/20 resize-none min-h-[48px] max-h-32 overflow-y-auto scrollbar-hide disabled:opacity-50 transition-all"
+              className="w-full p-3 sm:p-4 text-base bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none min-h-12 max-h-32 overflow-y-auto scrollbar-hide disabled:opacity-50 transition-all"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -326,7 +327,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
           <button 
             onClick={sendMessage}
             disabled={!isConnected || !input.trim()}
-            className="px-5 sm:px-6 py-3 sm:py-4 bg-white text-blue-600 rounded-2xl font-medium hover:bg-white/90 hover:shadow-md active:scale-[0.96] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none flex items-center justify-center min-w-[64px]"
+            className="px-5 sm:px-6 py-3 sm:py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-medium hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-[0.96] transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center justify-center min-w-12"
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
