@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { ArrowRight, GlobeIcon, MessageSquare } from "lucide-react"
 import { useState, useEffect } from "react"
-import Hyperspeed from "@/components/Hyperspeed"
 
 const CALMING_MESSAGES = [
   "Inhale for 4… hold… exhale for 6.",
