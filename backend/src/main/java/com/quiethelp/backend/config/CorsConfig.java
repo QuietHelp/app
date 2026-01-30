@@ -16,6 +16,8 @@ public class CorsConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("https://quiet-help.life");
+        config.addAllowedOrigin("http://quiet-help.life");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
