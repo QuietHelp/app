@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     // Use AI to check if the message is appropriate
     const { text } = await generateText({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.0-flash"),
       prompt: `You are a content moderator for a friendly anonymous chat app. Analyze the following message and determine if it contains:
 - Hate speech, harassment, or bullying
 - Sexual or explicit content
@@ -37,7 +37,7 @@ Respond with ONLY "APPROPRIATE" or "INAPPROPRIATE: [brief reason]"`,
   } catch (error) {
     console.error("[Moderation] Error:", error)
     // Fail open - allow message if moderation fails
-    return Response.json({ isAppropriate: true })
+    return Response.json({ isAppropriate: true, reason: null })
   }
 }
 
