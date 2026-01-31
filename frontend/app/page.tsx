@@ -57,7 +57,7 @@ export default function Home() {
       {/* Content layer */}
       <main className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-[600px] text-center landing-card p-8 sm:p-12">
-          <h1 className="h1 text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
+          <h1 className="h1 text-3xl sm:text-4xl font-bold text-blue-600 dark:text-white mb-4 sm:mb-6">
             QuietHelp
           </h1>
           <p className="text-lg sm:text-lg text-gray-700 dark:text-gray-300 mb-3 sm:mb-4 font-medium">
@@ -80,10 +80,10 @@ export default function Home() {
             <Button
               onClick={handleGlobalChat}
               size="lg"
-              className="rounded-xl hover-lift transition-all duration-200 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold flex-1 sm:flex-none dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white shadow-md hover:shadow-lg"
+              className="rounded-xl hover-lift transition-all duration-200 bg-gray-100 hover:bg-gray-200 font-semibold flex-1 sm:flex-none dark:bg-gray-700 dark:hover:bg-gray-600 shadow-md hover:shadow-lg"
             >
-              <MessageSquare className="mr-2 h-5 w-5" />
-              Global Chat
+              <MessageSquare className="mr-2 h-5 w-5 text-slate-500 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-500" />
+              <span className="text-slate-400 dark:text-slate-500">Global Chat</span>
             </Button>
           </div>
         </div> 
