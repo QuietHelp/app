@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     // Use AI to check if the message is appropriate
     const { text } = await generateText({
-      model: google("gemini-2.0-flash-exp"),
+      model: google("gemini-1.5-flash"),
       prompt: `You are a content moderator for a friendly anonymous chat app. Analyze the following message and determine if it contains:
 - Hate speech, harassment, or bullying
 - Sexual or explicit content
