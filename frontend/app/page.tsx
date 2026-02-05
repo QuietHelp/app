@@ -53,7 +53,7 @@ export default function Home() {
 
   
   return (
-    <div className="min-h-screen relative overflow-hidden gradient-bg">
+      <div className="min-h-screen relative overflow-hidden gradient-bg">
       {/* Content layer */}
       <main className="relative min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-[600px] text-center landing-card p-8 sm:p-12">
