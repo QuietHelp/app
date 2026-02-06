@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { ArrowRight, GlobeIcon, MessageSquare } from "lucide-react"
+import { ArrowRight, MessageSquare } from "lucide-react"
 import { useState, useEffect } from "react"
+import { createSession } from "@/lib/CreateSession";
 
 const CALMING_MESSAGES = [
   "Inhale for 4… hold… exhale for 6.",
@@ -25,19 +26,9 @@ export default function Home() {
   }, []);
 
   const handleStart = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/api/session`, {
-        method: 'GET',
-      });
-      const data = await response.json();
-      // Use sessionStorage
-      sessionStorage.setItem('sessionId', data.sessionId);
-      router.push('/mood');
-    } catch (error) {
-      console.error('Failed to create session:', error);
-    }
-  };
-
+    await createSession();
+    router.push("/mood");
+  }
   const handleGlobalChat = async () => {
     try {
       const response = await fetch(`${API_BASE}/api/global-chat/session`, {

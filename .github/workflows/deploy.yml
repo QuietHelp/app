@@ -7,8 +7,8 @@ on:
 
 env:
   REGION: us-central1
-  PROJECT_ID: quiethelp-485804
-  REPOSITORY: quiethelp
+  PROJECT_ID: quiethelp-485918
+  REPOSITORY: quiet-help
 
 jobs:
   build-and-push:
@@ -24,7 +24,8 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: 'projects/944510255677/locations/global/workloadIdentityPools/github-pool/providers/github-provider-v2'
+          service_account: 'artifact-pusher@quiethelp-485918.iam.gserviceaccount.com'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2

@@ -37,6 +37,51 @@ services:
           cpus: '1.0'
           memory: 512M
 
+  # Python Chatbot Microservice
+  chatbot:
+    build:
+      context: ../chatbot-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      AI_MODEL: gemini-2.0-flash
+    depends_on:
+      - redis
+    networks:
+      - quiethelp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # Lightweight API Gateway
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8080
+      CHATBOT_URL: http://chatbot:8000
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      - backend
+      - chatbot
+      - redis
+    networks:
+      - quiethelp
+      - web
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+
   frontend:
     build:
       context: ./frontend
@@ -46,7 +91,7 @@ services:
         NEXT_PUBLIC_WS_URL: wss://api.quiet-help.life
     restart: unless-stopped
     depends_on:
-      - backend
+      - api-gateway
     networks:
       - quiethelp
       - web
