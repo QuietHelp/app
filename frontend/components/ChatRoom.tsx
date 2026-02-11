@@ -13,6 +13,8 @@ export type ChatMessage = {
   message: string;
   timestamp: number | string; // Epoch milliseconds (number) or ISO string
   username?: string; // Optional, from backend
+  /** Epoch ms; backend sets createdAt + 30 min. Used to hide expired messages in UI. */
+  expiresAt?: number;
 };
 
 export type MatchFound = {
@@ -44,13 +46,25 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
    // Handler function for processing messages
    const handleMessage = (messageBody: string) => {
     try {
-      const data = JSON.parse(messageBody) as ChatMessage;
-      
+      const data = JSON.parse(messageBody) as Record<string, unknown>;
+      if (data?.type === 'messagesExpired' && Array.isArray(data.expiredTimestamps)) {
+        const expired = new Set((data.expiredTimestamps as number[]).map(Number));
+        setMessages((prev) =>
+          prev.filter((m) => {
+            const t = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
+            return !expired.has(t);
+          })
+        );
+        return;
+      }
+      const chat = data as ChatMessage;
+      if (!chat || typeof chat.message !== 'string') return;
+
       // Validate message structure
-      if (data && typeof data.message === 'string') {
+      if (chat && typeof chat.message === 'string') {
           // If this is a system 'Session ended.' message, clear previous messages and stop
-          if (data.username === 'system' && data.message === 'Session ended.') {
-            setMessages([{ ...data, timestamp: Date.now() }]);
+          if (chat.username === 'system' && chat.message === 'Session ended.') {
+            setMessages([{ ...chat, timestamp: Date.now() }]);
             // unsubscribe
             if (subscriptionRef.current) {
               subscriptionRef.current.unsubscribe();
@@ -63,20 +77,19 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
             return;
           }
         // Track peer's username from their messages
-        if (data.senderSessionId && data.senderSessionId !== sessionIdRef.current) {
-          if (data.username) {
-            setPeerUsername(data.username);
+        if (chat.senderSessionId && chat.senderSessionId !== sessionIdRef.current) {
+          if (chat.username) {
+            setPeerUsername(chat.username);
           }
         }
-        
-        // Ensure roomId and senderSessionId are set for room-based chat
+
         const roomMessage: ChatMessage = {
-          ...data,
+          ...chat,
           roomId: matchData.roomId,
-          senderSessionId: data.senderSessionId || sessionIdRef.current,
-          timestamp: data.timestamp || Date.now(),
+          senderSessionId: chat.senderSessionId || sessionIdRef.current,
+          timestamp: chat.timestamp || Date.now(),
         };
-        
+
         setMessages((prev) => [...prev, roomMessage]);
       }
     } catch (error) {
@@ -144,13 +157,13 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
         
         const data = await response.json();
         if (data.messages && Array.isArray(data.messages)) {
-          // Convert messages to ChatMessage format
           const historyMessages: ChatMessage[] = data.messages.map((msg: any) => ({
             roomId: matchData.roomId,
             senderSessionId: msg.senderSessionId,
             message: msg.message,
             timestamp: msg.timestamp,
             username: msg.username,
+            expiresAt: msg.expiresAt,
           }));
           
           setMessages(historyMessages);
@@ -304,17 +317,26 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
       </div>
 
       <div className="flex-1 surface-card p-4 sm:p-6 overflow-y-auto min-h-0 scrollbar-hide">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
-            <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-1">Start the conversation!</h3>
-            <p className="text-sm">Share what's on your mind. Your peer is listening.</p>
-          </div>
-        ) : (
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
+          This chat resets every 30 minutes.
+        </p>
+        {(() => {
+          const now = Date.now();
+          const visibleMessages = messages.filter((m) => !m.expiresAt || m.expiresAt > now);
+          if (visibleMessages.length === 0) {
+            return (
+              <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+                <h3 className="text-lg font-medium text-gray-600 dark:text-gray-300 mb-1">Start the conversation!</h3>
+                <p className="text-sm">Share what's on your mind. Your peer is listening.</p>
+              </div>
+            );
+          }
+          return (
           <div className="space-y-4">
-            {messages.map((m, idx) => {
+            {visibleMessages.map((m, idx) => {
               const isMyMessage = m.senderSessionId === sessionIdRef.current;
               const timestamp = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
-              const showDateSeparator = shouldShowDateSeparator(m, messages[idx - 1]);
+              const showDateSeparator = shouldShowDateSeparator(m, visibleMessages[idx - 1]);
               
               return (
                 <div key={idx}>
@@ -346,7 +368,8 @@ export default function ChatRoom({ sessionId, matchData }: ChatRoomProps) {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       <div className="flex gap-3 items-end">

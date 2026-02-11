@@ -12,6 +12,8 @@ interface ChatMessage {
   message: string;
   timestamp: number | string;
   senderSessionId?: string;
+  /** Epoch ms; backend sets createdAt + 30 min. Used to hide expired messages in UI. */
+  expiresAt?: number;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -58,14 +60,13 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
         
         const data = await response.json();
         if (data.messages && Array.isArray(data.messages)) {
-          // Convert messages to ChatMessage format
           const historyMessages: ChatMessage[] = data.messages.map((msg: any) => ({
             message: msg.message,
             timestamp: msg.timestamp,
             username: msg.username,
             senderSessionId: msg.senderSessionId,
+            expiresAt: msg.expiresAt,
           }));
-          
           setMessages(historyMessages);
         }
       } catch (error) {
@@ -99,11 +100,20 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
             '/topic/chat',
             (message: IMessage) => {
               try {
-                const data = JSON.parse(message.body) as ChatMessage;
-                
-                // Validate message structure
-                if (data && typeof data.username === 'string' && typeof data.message === 'string') {
-                  setMessages((prev) => [...prev, data]);
+                const data = JSON.parse(message.body) as Record<string, unknown>;
+                if (data?.type === 'messagesExpired' && Array.isArray(data.expiredTimestamps)) {
+                  const expired = new Set((data.expiredTimestamps as number[]).map(Number));
+                  setMessages((prev) =>
+                    prev.filter((m) => {
+                      const t = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
+                      return !expired.has(t);
+                    })
+                  );
+                  return;
+                }
+                const chat = data as ChatMessage;
+                if (chat && typeof chat.username === 'string' && typeof chat.message === 'string') {
+                  setMessages((prev) => [...prev, chat]);
                 }
               } catch (err) {
                 console.error('Error parsing message:', err);
@@ -249,17 +259,26 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
 
       {/* Messages Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-5 min-h-0 scrollbar-hide">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
-            <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Start the conversation!</h3>
-            <p className="text-sm">Be kind and supportive with others.</p>
-          </div>
-        ) : (
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
+          This chat resets every 30 minutes.
+        </p>
+        {(() => {
+          const now = Date.now();
+          const visibleMessages = messages.filter((m) => !m.expiresAt || m.expiresAt > now);
+          if (visibleMessages.length === 0) {
+            return (
+              <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
+                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-1">Start the conversation!</h3>
+                <p className="text-sm">Be kind and supportive with others.</p>
+              </div>
+            );
+          }
+          return (
           <div className="space-y-4">
-            {messages.map((m, idx) => {
-              const isMyMessage = m.senderSessionId === sessionIdRef.current; // Same pattern as ChatRoom
+            {visibleMessages.map((m, idx) => {
+              const isMyMessage = m.senderSessionId === sessionIdRef.current;
               const timestamp = typeof m.timestamp === 'string' ? new Date(m.timestamp).getTime() : m.timestamp;
-              const showDateSeparator = shouldShowDateSeparator(m, messages[idx - 1]);
+              const showDateSeparator = shouldShowDateSeparator(m, visibleMessages[idx - 1]);
               
               return (
                 <div key={idx}>
@@ -294,7 +313,8 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Input Bar - Pinned at bottom */}

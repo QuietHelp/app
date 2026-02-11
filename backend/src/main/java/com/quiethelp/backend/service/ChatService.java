@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quiethelp.backend.model.ChatMessageDTO;
 import com.quiethelp.backend.model.ChatMessageResponse;
+import com.quiethelp.backend.model.MessagesExpiredPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,16 +15,23 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 // Service for handling chat operations: broadcasting messages and managing Redis storage
+// All messages expire 30 minutes after creation; enforced by getChatHistory filter and scheduled cleanup.
 @Service
 public class ChatService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(ChatService.class);
     private static final String REDIS_MESSAGE_KEY = "chat:messages";
     private static final String REDIS_ROOM_MESSAGE_KEY_PREFIX = "chat:room:";
     private static final int MAX_MESSAGES = 100;
+    /** Message lifetime in minutes; after this, messages are excluded from fetch and removed by cleanup. */
+    private static final int MESSAGE_EXPIRY_MINUTES = 30;
+    /** Redis key TTL (slightly longer than message expiry so cleanup can run). */
+    private static final int KEY_TTL_MINUTES = 35;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -49,31 +57,34 @@ public class ChatService {
             // Determine if this is a room-based chat
             boolean isRoomChat = messageDTO.getRoomId() != null && !messageDTO.getRoomId().trim().isEmpty();
             String senderSessionId = messageDTO.getSenderSessionId();
-            
-            // Create response with timestamp
+            long now = Instant.now().toEpochMilli();
+            long expiresAt = now + TimeUnit.MINUTES.toMillis(MESSAGE_EXPIRY_MINUTES);
+
+            // Create response with timestamp and expiry
             ChatMessageResponse response;
             if (isRoomChat) {
-                // Room-based chat: include roomId and senderSessionId
                 response = new ChatMessageResponse(
                     finalUsername,
                     messageDTO.getMessage().trim(),
-                    Instant.now().toEpochMilli(),
+                    now,
                     messageDTO.getRoomId(),
                     senderSessionId
                 );
+                response.setChatType(ChatMessageResponse.CHAT_TYPE_PEER);
             } else {
-                // Broadcast chat: no roomId or senderSessionId
                 response = new ChatMessageResponse(
                     finalUsername,
                     messageDTO.getMessage().trim(),
-                    Instant.now().toEpochMilli()
+                    now
                 );
-                // Set senderSessionId if provided for broadcast chat
+                response.setChatType(ChatMessageResponse.CHAT_TYPE_GLOBAL);
                 if (senderSessionId != null && !senderSessionId.trim().isEmpty()) {
                     response.setSenderSessionId(senderSessionId);
                 }
             }
-            
+            response.setCreatedAt(now);
+            response.setExpiresAt(expiresAt);
+
             // Store in Redis (per room if room-based, globally if broadcast)
             storeMessage(response, isRoomChat ? messageDTO.getRoomId() : null);
             
@@ -107,9 +118,7 @@ public class ChatService {
             redisTemplate.opsForList().rightPush(redisKey, messageJson);
             redisTemplate.opsForList().trim(redisKey, -MAX_MESSAGES, -1);
             
-            // Set TTL to 30 minutes for room-based chats, 1 hour for broadcast
-            long ttlMinutes = (roomId != null && !roomId.trim().isEmpty()) ? 30 : 60;
-            redisTemplate.expire(redisKey, ttlMinutes, TimeUnit.MINUTES);
+            redisTemplate.expire(redisKey, KEY_TTL_MINUTES, TimeUnit.MINUTES);
             
             logger.debug("Message stored in Redis: {}", redisKey);
         } catch (JsonProcessingException e) {
@@ -138,37 +147,39 @@ public class ChatService {
         }
     }
     
-    // Retrieves chat history from Redis
-    // Returns list of recent messages (up to MAX_MESSAGES)
-    // If roomId is provided, retrieves room-specific history; otherwise retrieves broadcast history
+    // Retrieves chat history from Redis; returns ONLY non-expired messages.
+    // If roomId is provided, retrieves room-specific history; otherwise retrieves broadcast history.
     public List<ChatMessageResponse> getChatHistory(String roomId) {
         try {
             String redisKey = (roomId != null && !roomId.trim().isEmpty())
                 ? REDIS_ROOM_MESSAGE_KEY_PREFIX + roomId
                 : REDIS_MESSAGE_KEY;
-            
+
             List<String> messageJsonList = redisTemplate.opsForList().range(redisKey, 0, -1);
-            
+
             if (messageJsonList == null || messageJsonList.isEmpty()) {
                 return new ArrayList<>();
             }
-            
+
+            long now = Instant.now().toEpochMilli();
             List<ChatMessageResponse> messages = new ArrayList<>();
             for (String messageJson : messageJsonList) {
                 try {
                     ChatMessageResponse message = objectMapper.readValue(messageJson, ChatMessageResponse.class);
-                    messages.add(message);
+                    // Only return messages that are not yet expired (backend is source of truth)
+                    if (message.getExpiresAt() <= 0 || message.getExpiresAt() > now) {
+                        messages.add(message);
+                    }
                 } catch (JsonProcessingException e) {
                     logger.warn("Error deserializing message from Redis: {}", e.getMessage());
-                    // Skip malformed messages but continue processing others
                 }
             }
-            
-            logger.debug("Retrieved {} messages from Redis key: {}", messages.size(), redisKey);
+
+            logger.debug("Retrieved {} non-expired messages from Redis key: {}", messages.size(), redisKey);
             return messages;
         } catch (Exception e) {
             logger.error("Error retrieving chat history from Redis: {}", e.getMessage(), e);
-            return new ArrayList<>(); // Return empty list on error rather than failing
+            return new ArrayList<>();
         }
     }
     
@@ -194,5 +205,79 @@ public class ChatService {
     // Overload for backward compatibility - clears broadcast chat history
     public void clearHistory() {
         clearHistory(null);
+    }
+
+    /**
+     * Runs message expiry: removes messages where expiresAt <= now from Redis and
+     * broadcasts messagesExpired so clients can remove them from the UI.
+     * Called by the scheduled job.
+     */
+    public void runExpiryCleanup() {
+        long now = Instant.now().toEpochMilli();
+        try {
+            // Process global chat
+            processExpiryForKey(REDIS_MESSAGE_KEY, null, now);
+            // Process all room keys
+            Set<String> keys = redisTemplate.keys(REDIS_ROOM_MESSAGE_KEY_PREFIX + "*");
+            if (keys != null) {
+                for (String redisKey : keys) {
+                    String roomId = redisKey.substring(REDIS_ROOM_MESSAGE_KEY_PREFIX.length());
+                    processExpiryForKey(redisKey, roomId, now);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error during message expiry cleanup: {}", e.getMessage(), e);
+        }
+    }
+
+    private void processExpiryForKey(String redisKey, String roomId, long now) {
+        try {
+            List<String> messageJsonList = redisTemplate.opsForList().range(redisKey, 0, -1);
+            if (messageJsonList == null || messageJsonList.isEmpty()) return;
+
+            List<ChatMessageResponse> kept = new ArrayList<>();
+            List<Long> expiredTimestamps = new ArrayList<>();
+            for (String messageJson : messageJsonList) {
+                try {
+                    ChatMessageResponse message = objectMapper.readValue(messageJson, ChatMessageResponse.class);
+                    if (message.getExpiresAt() > 0 && message.getExpiresAt() <= now) {
+                        expiredTimestamps.add(message.getTimestamp());
+                    } else {
+                        kept.add(message);
+                    }
+                } catch (JsonProcessingException e) {
+                    kept.add(null); // keep malformed entries to avoid index shift; or skip
+                }
+            }
+            // Remove nulls from kept (malformed)
+            kept = kept.stream().filter(m -> m != null).collect(Collectors.toList());
+
+            if (expiredTimestamps.isEmpty()) return;
+
+            // Replace list with non-expired only
+            redisTemplate.delete(redisKey);
+            for (ChatMessageResponse message : kept) {
+                try {
+                    String json = objectMapper.writeValueAsString(message);
+                    redisTemplate.opsForList().rightPush(redisKey, json);
+                } catch (JsonProcessingException e) {
+                    logger.warn("Error serializing message during cleanup: {}", e.getMessage());
+                }
+            }
+            if (!kept.isEmpty()) {
+                redisTemplate.opsForList().trim(redisKey, -MAX_MESSAGES, -1);
+                redisTemplate.expire(redisKey, KEY_TTL_MINUTES, TimeUnit.MINUTES);
+            }
+
+            // Broadcast so clients remove these messages from UI
+            String topic = (roomId != null && !roomId.isEmpty())
+                ? "/topic/chat/" + roomId
+                : "/topic/chat";
+            MessagesExpiredPayload payload = new MessagesExpiredPayload(roomId, expiredTimestamps);
+            messagingTemplate.convertAndSend(topic, payload);
+            logger.debug("Expired {} messages for key {}; broadcast to {}", expiredTimestamps.size(), redisKey, topic);
+        } catch (Exception e) {
+            logger.warn("Error processing expiry for key {}: {}", redisKey, e.getMessage());
+        }
     }
 }
