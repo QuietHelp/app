@@ -111,7 +111,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
                   );
                   return;
                 }
-                const chat = data as ChatMessage;
+                const chat = data as unknown as ChatMessage;
                 if (chat && typeof chat.username === 'string' && typeof chat.message === 'string') {
                   setMessages((prev) => [...prev, chat]);
                 }
@@ -227,7 +227,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
       {/* Header - Pinned at top */}
-      <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
+      <div className="shrink-0 border-b border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1.5 flex items-center gap-2">
@@ -318,7 +318,7 @@ export default function ChatBroadcast({ sessionId }: ChatBroadcastProps) {
       </div>
 
       {/* Input Bar - Pinned at bottom */}
-      <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
+      <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 sm:p-5 bg-white dark:bg-gray-800">
         <div className="flex gap-3 items-end">
           <div className="flex-1 relative">
             <textarea
