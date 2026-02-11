@@ -30,7 +30,7 @@ export default function ChatBroadcastPage() {
   if (!mounted || !sessionId) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-bg">
-        <div className="text-white text-lg">Loading...</div>
+        <div className="text-gray-600 text-lg">Loading...</div>
       </div>
     );
   }

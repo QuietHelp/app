@@ -3,29 +3,30 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import clsx from "clsx";    
+import clsx from "clsx";
 import { createSession } from "@/lib/CreateSession";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const handleStart=async ()=>{
+  const handleStart = async () => {
     await createSession();
     router.push("/mood");
-  }
+  };
   const isOnGetStarted =
     pathname === "/" || pathname.startsWith("/mood") || pathname.startsWith("/chat");
-  const isOnResources = pathname.startsWith("/matching") || pathname.startsWith("/chat-broadcast");
+  const isOnResources = pathname === "/resources";
+  const isOnAbout = pathname === "/about";
 
   return (
-    <header className="w-full border-b border-white/10 bg-black/40 backdrop-blur-sm z-20">
+    <header className="w-full border-b border-gray-200 bg-white/80 backdrop-blur-sm z-20 sticky top-0">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="text-lg sm:text-xl font-semibold tracking-tight text-white flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-md px-1"
+          className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-md px-1"
         >
-          <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold">
+          <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
             QH
           </span>
           <span>QuietHelp</span>
@@ -35,23 +36,37 @@ export default function Navbar() {
           <Button
             size="sm"
             className={clsx(
-              "rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm bg-blue-600 hover:bg-blue-700",
-              isOnGetStarted && "ring-2 ring-offset-2 ring-blue-400 ring-offset-slate-900"
+              "rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm bg-blue-600 hover:bg-blue-700 text-white",
+              isOnGetStarted && "ring-2 ring-offset-2 ring-blue-400 ring-offset-white"
             )}
-            onClick={() => handleStart()} 
+            onClick={() => handleStart()}
           >
             Get Started
           </Button>
 
-          <Link href="/matching" className="hidden sm:inline-flex">
+          <Link href="/about" className="hidden sm:inline-flex">
             <Button
+              variant="secondary"
               size="sm"
               className={clsx(
-                "rounded-full px-4 py-1.5 text-sm font-medium bg-slate-900/70 text-slate-100 hover:bg-slate-800 border border-white/10",
-                isOnResources && "bg-blue-500 text-white border-blue-400"
+                "rounded-full px-4 py-1.5",
+                isOnAbout && "bg-blue-100! text-blue-800! border-blue-200! hover:bg-blue-200!"
               )}
             >
-              Other resources
+              About Us
+            </Button>
+          </Link>
+
+          <Link href="/resources" className="hidden sm:inline-flex">
+            <Button
+              variant="secondary"
+              size="sm"
+              className={clsx(
+                "rounded-full px-4 py-1.5",
+                isOnResources && "bg-blue-100! text-blue-800! border-blue-200! hover:bg-blue-200!"
+              )}
+            >
+              Helplines
             </Button>
           </Link>
         </div>

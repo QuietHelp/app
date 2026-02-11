@@ -335,10 +335,10 @@
   }
   body {
     @apply text-foreground;
-    background: #000000;
+    background: #F7F7FB;
   }
   html {
-    background: #000000;
+    background: #F7F7FB;
   }
 }
 

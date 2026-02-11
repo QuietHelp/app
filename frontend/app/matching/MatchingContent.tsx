@@ -55,7 +55,7 @@ export default function MatchingContent() {
   if (!mounted || !sessionId || !formData) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-bg">
-        <div className="text-white text-lg">Loading...</div>
+        <div className="text-gray-600 text-lg">Loading...</div>
       </div>
     );
   }
