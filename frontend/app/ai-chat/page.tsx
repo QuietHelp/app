@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import { Send, Bot, User, Loader2, Sparkles, Wind, ClipboardList, Target } from "lucide-react";
 
 interface Message {
   id: string;
@@ -11,17 +11,35 @@ interface Message {
   timestamp: Date;
 }
 
-const SUGGESTIONS = [
+const STARTER_SUGGESTIONS = [
   "I am feeling anxious today",
   "I need someone to talk to",
   "Help me calm down",
   "I am having a tough day",
 ];
 
+const GUIDED_FLOWS = [
+  { id: "grounding", label: "Grounding exercise", icon: Wind },
+  { id: "check-in", label: "Quick check-in", icon: ClipboardList },
+  { id: "small_step", label: "One small step", icon: Target },
+] as const;
+
+function getSessionId(): string {
+  if (typeof window === "undefined") return "";
+  let id = sessionStorage.getItem("ai_chat_session_id");
+  if (!id) {
+    id = crypto.randomUUID?.() ?? `session-${Date.now()}`;
+    sessionStorage.setItem("ai_chat_session_id", id);
+  }
+  return id;
+}
+
 export default function AIChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [sessionId] = useState(() => getSessionId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -34,72 +52,94 @@ export default function AIChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    // Add welcome message
     setMessages([
       {
         id: "welcome",
         role: "assistant",
         content:
-          "Hi there! I am here to listen and support you. How are you feeling today? Remember, this is a safe space - you can share whatever is on your mind.",
+          "Hi there! I'm here to listen and support you. Share what's on your mind, or try a guided exercise below.",
         timestamp: new Date(),
       },
     ]);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const sendToChat = useCallback(
+    async (messageText: string, flow?: string) => {
+      if (!messageText.trim() || isLoading) return;
+
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        content: messageText.trim(),
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+      setSuggestions([]);
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId,
+            message: messageText.trim(),
+            mood: undefined,
+            flow: flow ?? undefined,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            data.response ??
+            "I hear you. Would you like to tell me more about how you're feeling?",
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+          setSuggestions(data.suggestions);
+        }
+      } catch (error) {
+        console.error("Chat error:", error);
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            "I'm having trouble connecting right now. Please try again, or if you need immediate support, check out our helplines in the Resources section.",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [sessionId, isLoading]
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      // Call the AI moderation/chat endpoint
-      const response = await fetch("/api/moderate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          message: userMessage.content,
-          context: "supportive_chat"
-        }),
-      });
-
-      const data = await response.json();
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.response || data.message || "I hear you. Would you like to tell me more about how you are feeling?",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Failed to get AI response:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content:
-          "I am having trouble connecting right now. Please try again, or if you need immediate support, check out our helplines in the Resources section.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    const text = input.trim();
+    if (text) sendToChat(text);
   };
 
   const handleSuggestion = (suggestion: string) => {
     setInput(suggestion);
     inputRef.current?.focus();
+  };
+
+  const handleFlow = (flowId: string, label: string) => {
+    sendToChat(label, flowId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -109,10 +149,12 @@ export default function AIChatPage() {
     }
   };
 
+  const showStarterSuggestions = messages.length <= 1;
+  const displaySuggestions = suggestions.length > 0 ? suggestions : STARTER_SUGGESTIONS;
+
   return (
     <div className="min-h-screen gradient-bg">
       <div className="max-w-3xl mx-auto h-screen flex flex-col">
-        {/* Header */}
         <div className="p-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
@@ -120,12 +162,11 @@ export default function AIChatPage() {
             </div>
             <div>
               <h1 className="text-lg font-semibold text-gray-900">AI Support Companion</h1>
-              <p className="text-sm text-gray-500">Here to listen, 24/7</p>
+              <p className="text-sm text-gray-500">Here to listen, 24/7. Try a guided exercise or just chat.</p>
             </div>
           </div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
             <div
@@ -178,28 +219,52 @@ export default function AIChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Guided flows */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="h-4 w-4 text-blue-500" />
+            <span className="text-sm text-gray-500">Guided exercises</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {GUIDED_FLOWS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => handleFlow(id, label)}
+                disabled={isLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full text-blue-700 transition-colors disabled:opacity-50"
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Suggestions */}
-        {messages.length <= 1 && (
-          <div className="px-4 pb-2">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm text-gray-500">Suggestions</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTIONS.map((suggestion) => (
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm text-gray-500">
+              {suggestions.length > 0 ? "Suggestions" : "Start with"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(showStarterSuggestions ? STARTER_SUGGESTIONS : displaySuggestions).map(
+              (suggestion) => (
                 <button
                   key={suggestion}
+                  type="button"
                   onClick={() => handleSuggestion(suggestion)}
                   className="px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-200 rounded-full text-gray-600 transition-colors shadow-sm"
                 >
                   {suggestion}
                 </button>
-              ))}
-            </div>
+              )
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Input */}
         <div className="p-4 border-t border-gray-200 bg-white/80 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="flex gap-3">
             <textarea
