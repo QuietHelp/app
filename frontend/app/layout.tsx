@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "QuietHelp",
   description: "Anonymous peer support. No login required.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
