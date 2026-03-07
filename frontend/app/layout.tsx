@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   title: "QuietHelp",
   description: "Anonymous peer support. No login required.",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", sizes: "64x64", type: "image/png" },
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/favicon.png",
   },
 };
 

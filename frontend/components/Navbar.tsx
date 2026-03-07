@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import clsx from "clsx";
@@ -24,13 +25,11 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => router.push("/")}
-          className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-md px-1"
+          className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 flex items-center gap-0 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded-md px-1"
         >
-          <span className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white">
-            QH
-          </span>
+          <Image src="/favicon.png" alt="QuietHelp logo" width={48} height={48} className="h-12 w-12" />
           <span>QuietHelp</span>
-        </button>
+          </button>
 
         <div className="flex items-center gap-3">
           <Button
