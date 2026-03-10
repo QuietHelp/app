@@ -145,17 +145,13 @@ export default function Home() {
 
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-4 py-2 mb-8 shadow-sm">
-            <Sparkles className="h-4 w-4 text-yellow-500" />
-            <span className="text-sm text-gray-600">Anonymous | No logins | Real Connections</span>
-          </div>
+         
 
           {/* Main heading */}
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight tracking-tight">
             QuietHelp {"- "}
             <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-purple-600 to-pink-600">
-            Supporting You Quietly
-            </span>
+            Supporting You Quietly</span>
           </h1>
 
           {/* Calming message */}
