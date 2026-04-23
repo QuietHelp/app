@@ -3,6 +3,100 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ---------------------------------------------------------------------------
+ * QuietHelp theme palettes (frontend only).
+ *
+ * Each palette sets CSS custom properties that are consumed by the shared
+ * utility classes below (.gradient-bg, .landing-card, .btn-primary, and the
+ * .qh-accent-* helpers). The ThemeProvider sets `data-theme` on <html>;
+ * the `:root` block defines the default "Calm Blue" palette so the UI still
+ * looks right before any selection is made.
+ * --------------------------------------------------------------------------- */
+:root,
+[data-theme="calm-blue"] {
+  --qh-bg-start: #f7f7fb;
+  --qh-bg-end: #e8ebf8;
+  --qh-card: #ffffff;
+  --qh-card-border: #e5e7eb;
+  --qh-accent: #3b82f6;
+  --qh-accent-hover: #2563eb;
+  --qh-accent-soft: #dbeafe;
+  --qh-accent-contrast: #ffffff;
+  --qh-accent-ring: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="soft-lavender"] {
+  --qh-bg-start: #f5f3ff;
+  --qh-bg-end: #e9e5ff;
+  --qh-card: #ffffff;
+  --qh-card-border: #e4defb;
+  --qh-accent: #8b5cf6;
+  --qh-accent-hover: #7c3aed;
+  --qh-accent-soft: #ede9fe;
+  --qh-accent-contrast: #ffffff;
+  --qh-accent-ring: rgba(139, 92, 246, 0.3);
+}
+
+[data-theme="warm-sunset"] {
+  --qh-bg-start: #fff4ed;
+  --qh-bg-end: #ffe4d6;
+  --qh-card: #fffdfb;
+  --qh-card-border: #f5dccb;
+  --qh-accent: #f97316;
+  --qh-accent-hover: #ea580c;
+  --qh-accent-soft: #ffedd5;
+  --qh-accent-contrast: #ffffff;
+  --qh-accent-ring: rgba(249, 115, 22, 0.3);
+}
+
+[data-theme="sage-green"] {
+  --qh-bg-start: #f2f7f2;
+  --qh-bg-end: #deeade;
+  --qh-card: #ffffff;
+  --qh-card-border: #d7e4d7;
+  --qh-accent: #4b9f6b;
+  --qh-accent-hover: #3e8759;
+  --qh-accent-soft: #dceee2;
+  --qh-accent-contrast: #ffffff;
+  --qh-accent-ring: rgba(75, 159, 107, 0.3);
+}
+
+[data-theme="minimal-neutral"] {
+  --qh-bg-start: #fafafa;
+  --qh-bg-end: #efefef;
+  --qh-card: #ffffff;
+  --qh-card-border: #e5e7eb;
+  --qh-accent: #4b5563;
+  --qh-accent-hover: #374151;
+  --qh-accent-soft: #f3f4f6;
+  --qh-accent-contrast: #ffffff;
+  --qh-accent-ring: rgba(75, 85, 99, 0.25);
+}
+
+/* Theme-aware utility classes. Use these in components to opt into the
+ * selected palette without hard-coding a color. */
+.qh-accent-bg {
+  background-color: var(--qh-accent);
+  color: var(--qh-accent-contrast);
+  transition: background-color 0.2s ease;
+}
+.qh-accent-bg:hover {
+  background-color: var(--qh-accent-hover);
+}
+.qh-accent-text {
+  color: var(--qh-accent);
+}
+.qh-accent-soft-bg {
+  background-color: var(--qh-accent-soft);
+}
+.qh-accent-ring {
+  --tw-ring-color: var(--qh-accent-ring);
+  box-shadow: 0 0 0 3px var(--qh-accent-ring);
+}
+.qh-accent-border {
+  border-color: var(--qh-accent);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,8 +141,9 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #F7F7FB 0%, #E8EBF8 100%);
+  background: linear-gradient(135deg, var(--qh-bg-start) 0%, var(--qh-bg-end) 100%);
   min-height: 100vh;
+  transition: background 0.4s ease;
 }
 
 .dark .gradient-bg {
@@ -57,7 +152,8 @@
 
 .landing-card {
   position: relative;
-  background: #FFFFFF;
+  background: var(--qh-card);
+  border: 1px solid var(--qh-card-border);
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
@@ -118,8 +214,8 @@
 
 /* Button styles */
 .btn-primary {
-  background: #3B82F6;
-  color: white;
+  background: var(--qh-accent);
+  color: var(--qh-accent-contrast);
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
   font-weight: 500;
@@ -129,9 +225,9 @@
 }
 
 .btn-primary:hover {
-  background: #2563EB;
+  background: var(--qh-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px var(--qh-accent-ring);
 }
 
 .btn-primary:active {

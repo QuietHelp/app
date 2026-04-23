@@ -3,6 +3,23 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import { ThemeProvider } from "../components/ThemeProvider";
+import { DEFAULT_THEME, THEME_STORAGE_KEY } from "../lib/themes";
+
+// Runs before React hydrates so the stored palette is applied pre-paint and
+// we don't flash the default theme. Kept small and inline on purpose.
+const themeBootstrapScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});
+    var valid = ["calm-blue","soft-lavender","warm-sunset","sage-green","minimal-neutral"];
+    var theme = valid.indexOf(stored) !== -1 ? stored : ${JSON.stringify(DEFAULT_THEME)};
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch (e) {
+    document.documentElement.setAttribute("data-theme", ${JSON.stringify(DEFAULT_THEME)});
+  }
+})();
+`;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +49,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-white">
+    <html
+      lang="en"
+      className="bg-white"
+      data-theme={DEFAULT_THEME}
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-transparent`}
       >
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

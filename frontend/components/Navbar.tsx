@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import clsx from "clsx";
 import { createSession } from "@/lib/CreateSession";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -32,11 +33,13 @@ export default function Navbar() {
           </button>
 
         <div className="flex items-center gap-3">
+          <ThemeSwitcher />
+
           <Button
             size="sm"
             className={clsx(
-              "rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm bg-blue-600 hover:bg-blue-700 text-white",
-              isOnGetStarted && "ring-2 ring-offset-2 ring-blue-400 ring-offset-white"
+              "qh-accent-bg rounded-full px-4 py-1.5 text-sm font-semibold shadow-sm",
+              isOnGetStarted && "qh-accent-ring ring-offset-white"
             )}
             onClick={() => handleStart()}
           >
