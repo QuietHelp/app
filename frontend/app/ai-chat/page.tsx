@@ -79,6 +79,21 @@ export default function AIChatPage() {
       setIsLoading(true);
       setSuggestions([]);
 
+      const fallbackError =
+        "I'm having trouble connecting right now. Please try again, or if you need immediate support, check out our helplines in the Resources section.";
+
+      const appendAssistantMessage = (content: string) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content,
+            timestamp: new Date(),
+          },
+        ]);
+      };
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
@@ -91,35 +106,30 @@ export default function AIChatPage() {
           }),
         });
 
-        const data = await res.json();
+        const data = await res.json().catch(() => ({} as { error?: string; response?: string; suggestions?: string[] }));
 
         if (!res.ok) {
-          throw new Error(data.error || "Something went wrong");
+          // API replied with a structured error (e.g. missing key, quota, invalid key).
+          // Show its friendly text directly when present, otherwise the generic fallback.
+          appendAssistantMessage(
+            typeof data.error === "string" && data.error.trim()
+              ? data.error
+              : fallbackError
+          );
+          return;
         }
 
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content:
-            data.response ??
-            "I hear you. Would you like to tell me more about how you're feeling?",
-          timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
+        appendAssistantMessage(
+          data.response ??
+            "I hear you. Would you like to tell me more about how you're feeling?"
+        );
         if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
           setSuggestions(data.suggestions);
         }
-      } catch (error) {
-        console.error("Chat error:", error);
-        const errorMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content:
-            "I'm having trouble connecting right now. Please try again, or if you need immediate support, check out our helplines in the Resources section.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
+      } catch {
+        // Network error / fetch threw. Don't console.error — this is an
+        // expected failure mode and we already surface it to the user.
+        appendAssistantMessage(fallbackError);
       } finally {
         setIsLoading(false);
       }
